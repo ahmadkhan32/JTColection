@@ -61,3 +61,10 @@ export const productService = {
     return data || [];
   }
 };
+
+// FINAL PRODUCTION NAMED EXPORTS
+export const getProducts = productService.fetchProducts;
+export const addProduct = (product: any) => supabase.from('products').insert([product]);
+export const editProduct = (id: string, data: any) => supabase.from('products').update(data).eq('id', id);
+export const removeProduct = (id: string) => supabase.from('products').delete().eq('id', id);
+

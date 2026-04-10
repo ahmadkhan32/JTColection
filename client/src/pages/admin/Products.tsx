@@ -53,7 +53,7 @@ export const AdminProducts: React.FC = () => {
           placeholder="Search products by title..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full bg-white border border-slate-100 rounded-2xl px-12 py-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all font-medium"
+          className="w-full bg-white border border-slate-100 rounded-2xl px-12 py-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
         />
       </div>
 
@@ -63,10 +63,9 @@ export const AdminProducts: React.FC = () => {
             <thead>
               <tr className="bg-slate-50/50 text-slate-500 border-b border-slate-100">
                 <th className="p-6 font-bold text-xs uppercase tracking-widest">Product Info</th>
-                <th className="p-6 font-bold text-xs uppercase tracking-widest">Price</th>
-                <th className="p-6 font-bold text-xs uppercase tracking-widest">In Stock</th>
-                <th className="p-6 font-bold text-xs uppercase tracking-widest">Category</th>
-                <th className="p-6 font-bold text-xs uppercase tracking-widest">Actions</th>
+                <th className="p-6 font-bold text-xs uppercase tracking-widest text-center">Price</th>
+                <th className="p-6 font-bold text-xs uppercase tracking-widest text-center">Category</th>
+                <th className="p-6 font-bold text-xs uppercase tracking-widest text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -77,25 +76,19 @@ export const AdminProducts: React.FC = () => {
                       <div className="w-12 h-12 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0 shadow-inner">
                         <img src={p.image_url} alt={p.title} className="w-full h-full object-cover" />
                       </div>
-                      <span className="font-bold text-slate-800 leading-tight pr-4">{p.title}</span>
+                      <span className="font-bold text-slate-800 leading-tight">{p.title}</span>
                     </div>
                   </td>
-                  <td className="p-6">
+                  <td className="p-6 text-center">
                     <span className="font-black text-primary">${p.price}</span>
                   </td>
-                  <td className="p-6">
-                    <div className="flex items-center gap-2">
-                       <span className={`w-2 h-2 rounded-full ${p.stock > 10 ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                       <span className="font-bold text-slate-600">{p.stock} units</span>
-                    </div>
-                  </td>
-                  <td className="p-6">
+                  <td className="p-6 text-center">
                     <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider">
                       {p.categories?.name || 'Uncategorized'}
                     </span>
                   </td>
-                  <td className="p-6">
-                    <div className="flex items-center gap-2">
+                  <td className="p-6 text-right">
+                    <div className="flex justify-end gap-2">
                       <button 
                         onClick={() => { setEditingProduct(p); setShowForm(true); }}
                         className="p-3 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-xl transition-all"
@@ -116,6 +109,7 @@ export const AdminProducts: React.FC = () => {
           </table>
         </div>
       </div>
+
 
       {showForm && (
         <ProductForm 

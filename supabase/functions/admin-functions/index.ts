@@ -48,6 +48,9 @@ Deno.serve(async (req: Request) => {
       case 'add_product':
         result = await addProduct(supabase, payload);
         break;
+      case 'update_product':
+        result = await updateProduct(supabase, payload);
+        break;
       case 'update_order_status':
         result = await updateOrderStatus(supabase, payload);
         break;

@@ -1,14 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Users, ShoppingBag, DollarSign, Package, TrendingUp, ArrowUpRight, Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ShoppingBag, Package, Users, DollarSign, TrendingUp, ArrowUpRight, Clock } from 'lucide-react';
 import { adminService } from '../../services/adminService';
 
 export const Dashboard: React.FC = () => {
-  const [stats, setStats] = useState<any>({
-    totalRevenue: '0.00',
-    totalOrders: 0,
-    totalUsers: 0,
-    totalProducts: 0
-  });
+  const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -16,8 +12,8 @@ export const Dashboard: React.FC = () => {
       try {
         const data = await adminService.getAnalytics();
         setStats(data);
-      } catch (err) {
-        console.error(err);
+      } catch (error) {
+        console.error(error);
       } finally {
         setLoading(false);
       }
@@ -25,69 +21,98 @@ export const Dashboard: React.FC = () => {
     fetchStats();
   }, []);
 
-  const cards = [
-    { name: 'Total Revenue', value: `$${stats.totalRevenue}`, icon: <DollarSign className="text-green-500" />, trend: '+12.5%', color: 'from-green-500/10 to-transparent' },
-    { name: 'Total Orders', value: stats.totalOrders, icon: <ShoppingBag className="text-blue-500" />, trend: '+8.2%', color: 'from-blue-500/10 to-transparent' },
-    { name: 'Total Users', value: stats.totalUsers, icon: <Users className="text-purple-500" />, trend: '+14.1%', color: 'from-purple-500/10 to-transparent' },
-    { name: 'Inventory Count', value: stats.totalProducts, icon: <Package className="text-amber-500" />, trend: '+2.4%', color: 'from-amber-500/10 to-transparent' },
-  ];
-
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center p-12">
-        <Loader2 className="animate-spin text-accent" size={48} />
+      <div className="p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-pulse">
+        {[1,2,3,4].map(i => <div key={i} className="h-40 bg-slate-100 rounded-[2.5rem]" />)}
       </div>
     );
   }
 
+  const cards = [
+    { title: 'Total Revenue', value: `$${stats.totalRevenue}`, icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50', trend: '+12.5%' },
+    { title: 'Active Orders', value: stats.totalOrders, icon: Package, color: 'text-indigo-600', bg: 'bg-indigo-50', trend: '+4' },
+    { title: 'Collections', value: stats.totalProducts, icon: ShoppingBag, color: 'text-amber-600', bg: 'bg-amber-50', trend: 'Updated' },
+    { title: 'Customers', value: stats.totalUsers, icon: Users, color: 'text-rose-600', bg: 'bg-rose-50', trend: '+8%' },
+  ];
+
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-10">
+    <div className="space-y-12">
+      <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-4xl font-black text-slate-800 tracking-tight">Executive Dashboard</h1>
-          <p className="text-slate-500 font-medium">Global analytics and performance monitoring</p>
+          <span className="text-primary font-black uppercase tracking-[0.3em] text-[10px] mb-3 block">Performance Hub</span>
+          <h1 className="text-4xl font-black text-slate-800 tracking-tighter">Boutique Executive</h1>
         </div>
-        <div className="flex gap-4">
-          <div className="bg-white px-4 py-2 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-2">
-            <TrendingUp size={16} className="text-green-500" />
-            <span className="text-xs font-black text-slate-800 uppercase tracking-widest">Real-time stats</span>
-          </div>
+        <div className="flex items-center gap-3 px-4 py-2 bg-slate-50 rounded-xl border border-slate-100 text-slate-400 font-bold text-xs uppercase tracking-widest">
+            <Clock size={14} /> Real-time Updates
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {cards.map((card, i) => (
-          <div key={i} className={`bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-xl hover:-translate-y-1 transition-all duration-500`}>
-            <div className={`absolute top-0 left-0 w-full h-full bg-gradient-to-br ${card.color} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-            <div className="relative z-10 flex flex-col h-full justify-between">
-              <div className="flex justify-between items-start mb-6">
-                <div className="p-4 bg-slate-50 rounded-2xl text-slate-400 group-hover:scale-110 transition-transform duration-500">
-                  {card.icon}
-                </div>
-                <div className="flex items-center gap-1 text-green-500 font-black text-xs bg-green-50 px-2 py-1 rounded-lg">
-                  <ArrowUpRight size={12} />
-                  {card.trend}
-                </div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+            key={card.title}
+            className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-100 transition-all group"
+          >
+            <div className="flex justify-between items-start mb-6">
+              <div className={`${card.bg} ${card.color} p-4 rounded-2xl`}>
+                <card.icon size={24} />
               </div>
-              <div>
-                <p className="text-slate-500 font-bold text-xs uppercase tracking-widest mb-1">{card.name}</p>
-                <p className="text-3xl font-black text-slate-800 tracking-tight tracking-tight">{card.value}</p>
+              <div className="flex items-center gap-1 text-[10px] font-black uppercase text-emerald-500 bg-emerald-50 px-2 py-1 rounded-md">
+                <TrendingUp size={10} /> {card.trend}
               </div>
             </div>
-          </div>
+            <h3 className="text-slate-400 font-black uppercase text-[10px] tracking-widest mb-1">{card.title}</h3>
+            <p className="text-4xl font-black text-slate-800 tracking-tight">{card.value}</p>
+          </motion.div>
         ))}
       </div>
 
-      {/* Placeholder for chart */}
-      <div className="bg-white rounded-[3rem] p-10 shadow-sm border border-slate-100 min-h-[400px] flex items-center justify-center relative overflow-hidden">
-         <div className="absolute inset-0 bg-slate-50/50 opacity-50" style={{ backgroundImage: 'radial-gradient(circle, #000 0.5px, transparent 1px)', backgroundSize: '24px 24px' }} />
-         <div className="relative z-10 text-center">
-            <TrendingUp size={48} className="text-slate-200 mb-4 mx-auto" />
-            <h3 className="text-xl font-bold text-slate-400 uppercase tracking-widest">Revenue Analytics</h3>
-            <p className="text-slate-300 text-sm mt-2">Historical trends visualization</p>
-         </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 bg-slate-900 rounded-[3rem] p-10 text-white relative overflow-hidden group">
+            <div className="relative z-10">
+                <h3 className="text-2xl font-black tracking-tighter mb-2">Growth Projection</h3>
+                <p className="text-slate-400 text-sm font-medium mb-8">Boutique performance is up 18% compared to last lunar cycle.</p>
+                <div className="h-48 flex items-end gap-3">
+                    {[40, 70, 45, 90, 65, 80, 55, 95, 75, 100].map((h, i) => (
+                        <motion.div 
+                            initial={{ height: 0 }}
+                            animate={{ height: `${h}%` }}
+                            transition={{ delay: 0.5 + (i * 0.05) }}
+                            key={i} 
+                            className="flex-1 bg-gradient-to-t from-primary/20 to-primary rounded-t-lg group-hover:to-white transition-colors" 
+                        />
+                    ))}
+                </div>
+            </div>
+            <div className="absolute top-0 right-0 p-10 opacity-10">
+                <TrendingUp size={160} />
+            </div>
+        </div>
+
+        <div className="bg-white rounded-[3rem] p-10 border border-slate-100 shadow-sm">
+            <div className="flex justify-between items-center mb-10">
+                <h3 className="text-lg font-black text-slate-800 tracking-tight">Recent Activity</h3>
+                <ArrowUpRight className="text-slate-300" size={20} />
+            </div>
+            <div className="space-y-8">
+                {[1, 2, 3, 4].map(i => (
+                    <div key={i} className="flex gap-4 items-center">
+                        <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-primary font-black text-xs">
+                            {i}
+                        </div>
+                        <div className="flex-1">
+                            <p className="text-sm font-bold text-slate-800">New Order #JTC-{100 + i}</p>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">2 mins ago</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
       </div>
     </div>
   );
 };
-

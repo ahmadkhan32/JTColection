@@ -15,7 +15,7 @@ export const CartItem: React.FC<{ item: ICartItem }> = ({ item }) => {
         <div className="flex justify-between items-start gap-2">
           <h4 className="font-semibold text-slate-800 text-sm line-clamp-2">{item.title}</h4>
           <button 
-            onClick={() => removeFromCart(item.id, item.cart_id)}
+            onClick={() => removeFromCart(item.id, item.selectedSize || '', item.selectedColor || '', item.cart_id)}
             className="text-slate-300 hover:text-red-500 transition-colors"
           >
             <Trash2 size={16} />
@@ -25,7 +25,7 @@ export const CartItem: React.FC<{ item: ICartItem }> = ({ item }) => {
           <p className="font-bold text-primary">${item.price.toFixed(2)}</p>
           <div className="flex items-center gap-3 bg-slate-50 rounded-lg p-1 border border-slate-100">
             <button 
-              onClick={() => updateQuantity(item.id, item.cart_id, item.quantity - 1)}
+              onClick={() => updateQuantity(item.id, item.selectedSize || '', item.selectedColor || '', item.cart_id, item.quantity - 1)}
               className="p-1 hover:bg-white rounded-md text-slate-500 transition-colors hover:shadow-sm"
               disabled={item.quantity <= 1}
             >
@@ -33,7 +33,7 @@ export const CartItem: React.FC<{ item: ICartItem }> = ({ item }) => {
             </button>
             <span className="text-sm font-semibold w-4 text-center">{item.quantity}</span>
             <button 
-              onClick={() => updateQuantity(item.id, item.cart_id, item.quantity + 1)}
+              onClick={() => updateQuantity(item.id, item.selectedSize || '', item.selectedColor || '', item.cart_id, item.quantity + 1)}
               className="p-1 hover:bg-white rounded-md text-slate-500 transition-colors hover:shadow-sm"
             >
               <Plus size={14} />

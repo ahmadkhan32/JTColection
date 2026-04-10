@@ -9,8 +9,6 @@ export const AdminOrders: React.FC = () => {
 
   const fetchOrders = async () => {
     try {
-      // In a real app, this would be adminService.fetchOrders()
-      // For now we use the existing specific query pattern
       const { data } = await adminService.fetchOrders();
       setOrders(data);
     } catch (err) {

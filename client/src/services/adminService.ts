@@ -41,10 +41,10 @@ export const adminService = {
   // Analytics & User Management
   async getAnalytics() {
     const { data: products } = await supabase.from('products').select('id', { count: 'exact' });
-    const { data: orders } = await supabase.from('orders').select('total_price, status', { count: 'exact' });
-    const { data: users } = await supabase.from('profiles').select('id', { count: 'exact' });
+    const { data: orders } = await supabase.from('orders').select('total_amount, status', { count: 'exact' });
+    const { data: users } = await supabase.from('users').select('id', { count: 'exact' });
 
-    const totalRevenue = orders?.reduce((acc: number, curr: any) => acc + (Number(curr.total_price) || 0), 0) || 0;
+    const totalRevenue = orders?.reduce((acc: number, curr: any) => acc + (Number(curr.total_amount) || 0), 0) || 0;
     
     return {
       totalProducts: products?.length || 0,
@@ -56,7 +56,7 @@ export const adminService = {
 
   async fetchUsers() {
     const { data, error } = await supabase
-      .from('profiles')
+      .from('users')
       .select('*')
       .order('created_at', { ascending: false });
     
@@ -68,7 +68,7 @@ export const adminService = {
   async fetchOrders() {
     const { data, error } = await supabase
       .from('orders')
-      .select('*, profiles(name, email)')
+      .select('*, order_items(*, products(*))')
       .order('created_at', { ascending: false });
     
     if (error) throw error;
@@ -92,7 +92,7 @@ export const adminService = {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return false;
     const { data } = await supabase
-      .from('profiles')
+      .from('users')
       .select('role')
       .eq('id', session.user.id)
       .single();
