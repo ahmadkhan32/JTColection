@@ -89,10 +89,13 @@ export const ProductPage: React.FC = () => {
                     <ProductInfo 
                         product={product} 
                         onAddToCart={(prod, vars) => addToCart({
-                            ...prod, 
-                            selectedSize: vars.size, 
-                            selectedColor: vars.color, 
-                            quantity: vars.quantity
+                            id: product.id,
+                            title: product.title,
+                            price: (prod.price as number) ?? product.price,
+                            image_url: product.image_url,
+                            quantity: vars.quantity,
+                            selectedSize: vars.size,
+                            selectedColor: vars.color,
                         })} 
                     />
                 </div>
