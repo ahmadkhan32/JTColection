@@ -1,5 +1,6 @@
 import { useAuth } from '../../hooks/useAuth';
 import { Navigate, Outlet, Link, useLocation } from 'react-router-dom';
+import { LayoutDashboard, Package, ShoppingBag, Users, LogOut, LayoutGrid } from 'lucide-react';
 
 export const AdminLayout: React.FC = () => {
   const { pathname } = useLocation();
