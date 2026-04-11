@@ -225,6 +225,40 @@ export const HomePage: React.FC = () => {
             }
           </div>
         </section>
+        {/* ── TESTIMONIALS ──────────────────────────────────────────────── */}
+        <section className="bg-slate-50 py-24 border-t border-slate-100">
+          <div className="max-w-[1440px] mx-auto px-6 text-center">
+            <span className="text-primary font-black uppercase tracking-[0.3em] text-[10px] mb-3 block">Real Reviews</span>
+            <h2 className="text-4xl md:text-5xl font-black text-slate-800 tracking-tighter mb-16">Loved by Women Nationwide <Star className="inline-block text-amber-400 -mt-2" fill="currentColor" /></h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {[
+                { name: 'Ayesha M.', text: 'The luxury 3-piece suit I ordered exceeded my expectations. Zara-level quality right here in Pakistan!', rating: 5 },
+                { name: 'Fatima Z.', text: 'Incredible customer service and ultra-fast delivery. The fabric is absolutely premium.', rating: 5 },
+                { name: 'Sana R.', text: 'Finally, an elite brand that understands modern cuts while retaining traditional elegance. Highly recommended.', rating: 5 },
+              ].map((t, i) => (
+                <motion.div 
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100 text-left"
+                >
+                  <div className="flex text-amber-400 mb-6">
+                    {[...Array(t.rating)].map((_, i) => <Star key={i} size={16} fill="currentColor" />)}
+                  </div>
+                  <p className="text-slate-600 font-medium leading-relaxed italic mb-8">"{t.text}"</p>
+                  <div className="flex flex-col">
+                    <span className="font-black text-slate-800 text-sm">{t.name}</span>
+                    <span className="text-[10px] uppercase tracking-widest text-primary font-bold">Verified Buyer</span>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
       </main>
 
       <Footer />
