@@ -17,14 +17,28 @@ export const Login: React.FC = () => {
     setError(null);
     
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({ 
+      const { data: { user }, error: signInError } = await supabase.auth.signInWithPassword({ 
         email, 
         password 
       });
 
       if (signInError) throw signInError;
+      if (!user) throw new Error("No user found after sign in.");
+
+      // Fetch user profile to check role
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError) throw profileError;
       
-      navigate('/');
+      if (profile?.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     } catch (err: any) {
       console.error("Login error:", err);
       setError(err.message || "Failed to sign in. Please check your credentials.");

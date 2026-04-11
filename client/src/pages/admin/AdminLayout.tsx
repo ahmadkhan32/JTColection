@@ -1,11 +1,23 @@
-import React from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingBag, Users, LogOut, LayoutGrid } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { Navigate, Outlet, Link, useLocation } from 'react-router-dom';
 
 export const AdminLayout: React.FC = () => {
   const { pathname } = useLocation();
-  const { signOut } = useAuth();
+  const { user, profile, isLoading, signOut } = useAuth();
+
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Redirect if not logged in or not an admin
+  if (!user || profile?.role !== 'admin') {
+    return <Navigate to="/" replace />;
+  }
 
   const links = [
     { name: 'Dashboard', path: '/admin', icon: <LayoutDashboard size={20} /> },

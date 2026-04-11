@@ -56,6 +56,14 @@ export const Navbar: React.FC = () => {
                   </span>
                 )}
               </button>
+              
+              {profile?.role === 'admin' && (
+                <Link to="/admin" className="hidden sm:flex items-center gap-2 bg-primary/10 text-primary hover:bg-primary hover:text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all">
+                  <LayoutDashboard size={14} />
+                  Dashboard
+                </Link>
+              )}
+
               <Link to="/login" className="text-slate-600 hover:text-accent hidden sm:block transition-colors">
                 <User size={22} />
               </Link>
@@ -89,6 +97,13 @@ export const Navbar: React.FC = () => {
               
               <div className="h-px bg-slate-100 my-2"></div>
               
+              {profile?.role === 'admin' && (
+                <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-bold text-primary hover:text-accent flex items-center gap-2">
+                  <LayoutDashboard size={20} />
+                  Admin Dashboard
+                </Link>
+              )}
+
               <Link to="/wishlist" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-semibold text-slate-700 hover:text-accent flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
                 Wishlist
