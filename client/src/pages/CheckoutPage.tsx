@@ -18,6 +18,7 @@ export const CheckoutPage: React.FC = () => {
     address: '',
     city: '',
   });
+  const [paymentMethod, setPaymentMethod] = useState<'COD' | 'ONLINE'>('COD');
 
   useEffect(() => {
     setIsCartOpen(false);
@@ -36,7 +37,7 @@ export const CheckoutPage: React.FC = () => {
   const shipping = cartTotal > 500 ? 0 : 50;
   const finalTotal = cartTotal + shipping;
 
-  const handleCODOrder = async (e: React.FormEvent) => {
+  const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
@@ -50,16 +51,28 @@ export const CheckoutPage: React.FC = () => {
         address: formData.address,
         city: formData.city,
         total_amount: finalTotal,
-        status: 'pending'
+        payment_method: paymentMethod,
+        status: paymentMethod === 'ONLINE' ? 'pending_payment' : 'pending'
       };
 
-      await orderService.placeOrder(orderPayload, cart);
+      const newOrder = await orderService.placeOrder(orderPayload, cart);
 
-      await clearCart();
-      setTimeout(() => {
-        setLoading(false);
-        navigate('/success');
-      }, 1500);
+      if (paymentMethod === 'ONLINE') {
+        // Trigger Pakistan PG Simulation (JazzCash/EasyPaisa)
+        // Normally you redirect to the payment gateway URL here.
+        setTimeout(() => {
+          setLoading(false);
+          alert(`Redirecting to JazzCash/EasyPaisa gateway for Order JTC-${newOrder.id}...`);
+          clearCart();
+          navigate('/success');
+        }, 2000);
+      } else {
+        await clearCart();
+        setTimeout(() => {
+          setLoading(false);
+          navigate('/success');
+        }, 1500);
+      }
 
     } catch (err) {
       console.error(err);
@@ -93,10 +106,36 @@ export const CheckoutPage: React.FC = () => {
                 <span className="text-primary font-black tracking-widest uppercase text-xs block mb-3">Confirmation</span>
                 <h2 className="text-5xl font-black text-slate-800 tracking-tight mb-8">Shipping Boutique</h2>
                 
+                <div className="mb-12">
+                  <h3 className="text-xl font-black text-slate-800 mb-6 uppercase text-xs tracking-widest border-b border-slate-100 pb-4">Payment Method</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <button 
+                      onClick={() => setPaymentMethod('COD')}
+                      className={`p-6 border-2 rounded-2xl flex flex-col gap-2 items-start transition-all ${
+                        paymentMethod === 'COD' ? 'border-primary bg-primary/5 shadow-sm' : 'border-slate-100 bg-white hover:border-slate-200'
+                      }`}
+                    >
+                      <div className="w-10 h-10 rounded-full bg-slate-900 text-white flex items-center justify-center font-black">C</div>
+                      <span className="font-black text-slate-800 tracking-tight">Cash on Delivery</span>
+                      <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Pay at your doorstep</span>
+                    </button>
+                    <button 
+                      onClick={() => setPaymentMethod('ONLINE')}
+                      className={`p-6 border-2 rounded-2xl flex flex-col gap-2 items-start transition-all ${
+                        paymentMethod === 'ONLINE' ? 'border-primary bg-primary/5 shadow-sm' : 'border-slate-100 bg-white hover:border-slate-200'
+                      }`}
+                    >
+                      <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center font-black">J</div>
+                      <span className="font-black text-slate-800 tracking-tight">JazzCash / Cards</span>
+                      <span className="text-[10px] uppercase tracking-widest text-emerald-500 font-bold">Instant & Secure</span>
+                    </button>
+                  </div>
+                </div>
+
                 <CheckoutForm 
                   formData={formData} 
                   setFormData={setFormData} 
-                  onSubmit={handleCODOrder} 
+                  onSubmit={handleCheckout} 
                   loading={loading}
                 />
               </div>
@@ -153,20 +192,21 @@ export const CheckoutPage: React.FC = () => {
                   form="cod-form"
                   type="submit" 
                   disabled={loading}
-                  className="w-full bg-slate-900 text-white py-6 rounded-3xl font-black uppercase text-xs tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-2xl shadow-slate-200 hover:bg-black group disabled:opacity-50 mt-10"
+                  className={`w-full text-white py-6 rounded-3xl font-black uppercase text-xs tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-2xl hover:scale-[1.02] active:scale-[0.98] mt-10 group disabled:opacity-50 ${
+                    paymentMethod === 'ONLINE' ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20' : 'bg-slate-900 hover:bg-black shadow-slate-200'
+                  }`}
                 >
                   {loading ? (
                     <Loader2 className="animate-spin" size={20} />
                   ) : (
                     <>
-                      Confirm COD Order <ArrowRight className="group-hover:translate-x-1 transition-transform" size={16} />
+                      {paymentMethod === 'ONLINE' ? 'Pay via JazzCash / PG' : 'Confirm COD Order'} <ArrowRight className="group-hover:translate-x-1 transition-transform" size={16} />
                     </>
                   )}
                 </button>
               </div>
             </motion.div>
           </div>
-
         </div>
       </div>
     </div>
