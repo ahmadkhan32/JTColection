@@ -13,7 +13,20 @@ export const CartItem: React.FC<{ item: ICartItem }> = ({ item }) => {
       </div>
       <div className="flex-1 flex flex-col justify-between py-1">
         <div className="flex justify-between items-start gap-2">
-          <h4 className="font-semibold text-slate-800 text-sm line-clamp-2">{item.title}</h4>
+          <div>
+            <h4 className="font-semibold text-slate-800 text-sm line-clamp-2">{item.title}</h4>
+            {(item.selectedSize || item.selectedColor) && (
+              <div className="flex items-center gap-2 mt-1 text-xs font-bold text-slate-500">
+                {item.selectedSize && <span className="bg-slate-100 px-2 py-0.5 rounded text-slate-600">Size: {item.selectedSize}</span>}
+                {item.selectedColor && (
+                  <span className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded text-slate-600">
+                    <span className="w-2 h-2 rounded-full border border-slate-300" style={{ backgroundColor: item.selectedColor }} />
+                    {item.selectedColor}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
           <button 
             onClick={() => removeFromCart(item.id, item.selectedSize || '', item.selectedColor || '', item.cart_id)}
             className="text-slate-300 hover:text-red-500 transition-colors"

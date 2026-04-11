@@ -32,13 +32,29 @@ interface Product {
 
 export const HomePage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [dbCategories, setDbCategories] = useState<{name: string, img: string}[]>(SRS_CATEGORIES);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const fetched = await productService.fetchProducts({ limit: 8 });
-        setProducts((fetched as unknown as Product[]) || []);
+        const [fetchedProducts, fetchedCategories] = await Promise.all([
+          productService.fetchProducts({ limit: 8 }),
+          productService.fetchCategories()
+        ]);
+        setProducts((fetchedProducts as unknown as Product[]) || []);
+
+        if (fetchedCategories && fetchedCategories.length > 0) {
+          // Merge DB categories with default images from SRS array if no image exists
+          const merged = fetchedCategories.map((dbCat: any) => {
+            const fallback = SRS_CATEGORIES.find(c => c.name.toLowerCase() === dbCat.name.toLowerCase());
+            return {
+              name: dbCat.name,
+              img: dbCat.image_url || fallback?.img || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80'
+            };
+          });
+          setDbCategories(merged);
+        }
       } catch {
         setProducts([]);
       } finally {
@@ -124,7 +140,7 @@ export const HomePage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {SRS_CATEGORIES.map((cat, i) => (
+            {dbCategories.map((cat, i) => (
               <Link
                 key={cat.name}
                 to={`/shop?category=${encodeURIComponent(cat.name)}`}
