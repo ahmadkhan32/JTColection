@@ -2,23 +2,34 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, ArrowRight } from 'lucide-react';
-// import { supabase } from '../services/supabaseClient';
+import { supabase } from '../services/supabaseClient';
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // In production: const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setError(null);
     
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      const { error: signInError } = await supabase.auth.signInWithPassword({ 
+        email, 
+        password 
+      });
+
+      if (signInError) throw signInError;
+      
       navigate('/');
-    }, 1000);
+    } catch (err: any) {
+      console.error("Login error:", err);
+      setError(err.message || "Failed to sign in. Please check your credentials.");
+      setLoading(false);
+    }
   };
 
   return (
@@ -40,6 +51,15 @@ export const Login: React.FC = () => {
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
+            {error && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl text-sm font-medium"
+              >
+                {error}
+              </motion.div>
+            )}
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Email Address</label>
               <div className="relative">

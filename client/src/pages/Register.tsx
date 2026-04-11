@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, User as UserIcon, ArrowRight } from 'lucide-react';
-// import { supabase } from '../services/supabaseClient';
+import { supabase } from '../services/supabaseClient';
 
 export const Register: React.FC = () => {
   const navigate = useNavigate();
@@ -10,16 +10,33 @@ export const Register: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // In production: const { error } = await supabase.auth.signUp({ email, password, options: { data: { name } }});
+    setError(null);
     
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      const { error: signUpError } = await supabase.auth.signUp({ 
+        email, 
+        password, 
+        options: { 
+          data: { 
+            full_name: name 
+          } 
+        }
+      });
+
+      if (signUpError) throw signUpError;
+      
+      // Navigate to shop or a 'verify email' page
       navigate('/shop');
-    }, 1000);
+    } catch (err: any) {
+      console.error("Registration error:", err);
+      setError(err.message || "Failed to create account. Please try again.");
+      setLoading(false);
+    }
   };
 
   return (
@@ -41,6 +58,15 @@ export const Register: React.FC = () => {
           </div>
 
           <form onSubmit={handleRegister} className="space-y-5">
+            {error && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl text-sm font-medium"
+              >
+                {error}
+              </motion.div>
+            )}
              <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Full Name</label>
               <div className="relative">
