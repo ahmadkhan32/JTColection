@@ -23,6 +23,12 @@ export const ProductsPage: React.FC = () => {
   const { products, loading, fetchProducts } = useProducts();
 
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const cat = params.get('category') || '';
+    setCategory(cat);
+  }, [location.search]);
+
+  useEffect(() => {
     fetchProducts(debouncedSearch, category, minPrice, maxPrice);
   }, [debouncedSearch, category, minPrice, maxPrice]);
 

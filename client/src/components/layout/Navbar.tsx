@@ -36,8 +36,8 @@ export const Navbar: React.FC = () => {
             <div className="hidden md:flex space-x-8">
               <Link to="/" className="text-slate-600 hover:text-accent transition-colors font-semibold">Home</Link>
               <Link to="/shop" className="text-slate-600 hover:text-accent transition-colors font-semibold">Shop</Link>
-              <Link to="/shop?category=women" className="text-slate-600 hover:text-accent transition-colors font-semibold">Women</Link>
-              <Link to="/shop?category=accessories" className="text-slate-600 hover:text-accent transition-colors font-semibold">Accessories</Link>
+              <Link to="/shop?category=Women" className="text-slate-600 hover:text-accent transition-colors font-semibold">Women</Link>
+              <Link to="/shop?category=Accessories" className="text-slate-600 hover:text-accent transition-colors font-semibold">Accessories</Link>
             </div>
 
             <div className="flex items-center space-x-3 sm:space-x-5">
@@ -84,8 +84,8 @@ export const Navbar: React.FC = () => {
             <div className="flex flex-col px-4 py-6 space-y-4 shadow-inner">
               <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-semibold text-slate-700 hover:text-accent">Home</Link>
               <Link to="/shop" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-semibold text-slate-700 hover:text-accent">Shop</Link>
-              <Link to="/shop?category=women" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-semibold text-slate-700 hover:text-accent">Women</Link>
-              <Link to="/shop?category=accessories" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-semibold text-slate-700 hover:text-accent">Accessories</Link>
+              <Link to="/shop?category=Women" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-semibold text-slate-700 hover:text-accent">Women</Link>
+              <Link to="/shop?category=Accessories" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-semibold text-slate-700 hover:text-accent">Accessories</Link>
               
               <div className="h-px bg-slate-100 my-2"></div>
               

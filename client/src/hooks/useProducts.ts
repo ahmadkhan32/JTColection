@@ -15,7 +15,18 @@ export const useProducts = () => {
       }
       
       if (categoryId) {
-        query = query.eq('category_id', categoryId);
+        // Check if categoryId is a UUID or a name
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(categoryId);
+        if (isUUID) {
+          query = query.eq('category_id', categoryId);
+        } else {
+          // If it's a name (from URL), we need to filter on categories.name
+          // We use 'categories!inner(name)' to force the join and filter by the nested property
+          query = supabase
+            .from('products')
+            .select('*, categories!inner(name)')
+            .ilike('categories.name', categoryId);
+        }
       }
       
       if (minPrice !== undefined) {
