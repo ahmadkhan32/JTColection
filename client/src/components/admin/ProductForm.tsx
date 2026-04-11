@@ -62,8 +62,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({ product, onClose, onSu
     try {
       const payload = {
         ...formData,
-        sizes: formData.sizes.split(',').map(s => s.trim()).filter(Boolean),
-        colors: formData.colors.split(',').map(c => c.trim()).filter(Boolean),
+        sizes: formData.sizes.split(',').map((s: string) => s.trim()).filter(Boolean),
+        colors: formData.colors.split(',').map((c: string) => c.trim()).filter(Boolean),
       };
 
       if (product?.id) {
