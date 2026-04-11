@@ -74,7 +74,7 @@ export const HomePage: React.FC = () => {
                 <Link to="/shop" className="bg-white text-slate-900 px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all inline-flex items-center justify-center gap-3 shadow-2xl">
                   Shop Collection <ArrowRight size={16} />
                 </Link>
-                <Link to="/products?category=Suits" className="border border-white/20 backdrop-blur-md text-white px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white/10 transition-all inline-flex items-center justify-center">
+                <Link to="/shop?category=Suits" className="border border-white/20 backdrop-blur-md text-white px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white/10 transition-all inline-flex items-center justify-center">
                   View Lookbook
                 </Link>
               </div>
@@ -116,7 +116,7 @@ export const HomePage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Link to="/products?category=Bridal" className="group relative h-[500px] rounded-[3rem] overflow-hidden">
+            <Link to="/shop?category=Bridal" className="group relative h-[500px] rounded-[3rem] overflow-hidden">
                 <img src="https://images.pexels.com/photos/2065162/pexels-photo-2065162.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Bridal Category" className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-all" />
                 <div className="absolute inset-x-0 bottom-0 p-12 text-white">
@@ -125,14 +125,14 @@ export const HomePage: React.FC = () => {
                 </div>
             </Link>
             <div className="space-y-8">
-                <Link to="/products?category=Pret" className="group relative h-[234px] rounded-[3rem] overflow-hidden block">
+                <Link to="/shop?category=Pret" className="group relative h-[234px] rounded-[3rem] overflow-hidden block">
                     <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1000&auto=format&fit=crop" alt="Pret-a-Porter Category" className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
                     <div className="absolute inset-0 bg-black/20" />
                     <div className="absolute inset-x-0 bottom-0 p-8 text-white">
                         <h3 className="text-2xl font-black tracking-tighter">Pret-a-Porter</h3>
                     </div>
                 </Link>
-                <Link to="/products?category=Formal" className="group relative h-[234px] rounded-[3rem] overflow-hidden block">
+                <Link to="/shop?category=Formal" className="group relative h-[234px] rounded-[3rem] overflow-hidden block">
                     <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=1000&auto=format&fit=crop" alt="Luxury Formal Category" className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
                     <div className="absolute inset-0 bg-black/20" />
                     <div className="absolute inset-x-0 bottom-0 p-8 text-white">
@@ -140,7 +140,7 @@ export const HomePage: React.FC = () => {
                     </div>
                 </Link>
             </div>
-            <Link to="/products?category=Accessories" className="group relative h-[500px] rounded-[3rem] overflow-hidden">
+            <Link to="/shop?category=Accessories" className="group relative h-[500px] rounded-[3rem] overflow-hidden">
                 <img src="https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=1000&auto=format&fit=crop" alt="Essentials Category" className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-all" />
                 <div className="absolute inset-x-0 bottom-0 p-12 text-white">
