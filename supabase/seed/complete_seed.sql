@@ -8,10 +8,10 @@
 -- ═══════════════════════════════════════════════════════════════════
 
 INSERT INTO public.categories (name, description, image_url) VALUES
-  ('Women', 'Elegant clothing for the modern woman.', 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=500'),
-  ('Men', 'Premium menswear collection.', 'https://images.unsplash.com/photo-1552062407-291b1b913beb?w=500'),
+  ('Women', 'Elegant clothing for the modern woman.', 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=500'),
+  ('Men', 'Premium menswear collection.', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500'),
   ('Accessories', 'Luxury handbags and designer complements.', 'https://images.unsplash.com/photo-1584916201218-f4242ceb4809?w=500'),
-  ('Footwear', 'Comfortable and stylish shoes for every occasion.', 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500')
+  ('Footwear', 'Comfortable and stylish shoes for every occasion.', 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=500')
 ON CONFLICT (name) DO NOTHING;
 
 -- ═══════════════════════════════════════════════════════════════════
@@ -21,7 +21,7 @@ ON CONFLICT (name) DO NOTHING;
 INSERT INTO public.products (title, price, old_price, image_url, category_id, stock, description, sizes, colors, fabric, season) VALUES
 
 -- Women's Products
-('Premium Silk Dress', 95.00, 120.00, 'https://images.unsplash.com/photo-1595777707814-d25edd1b4d91?w=500', (SELECT id FROM public.categories WHERE name='Women'), 25, 'High-quality luxury silk dress for elegant occasions.', ARRAY['XS', 'S', 'M', 'L', 'XL'], ARRAY['Black', 'Navy', 'Cream'], 'Silk', 'Summer'),
+('Premium Silk Dress', 95.00, 120.00, 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=500', (SELECT id FROM public.categories WHERE name='Women'), 25, 'High-quality luxury silk dress for elegant occasions.', ARRAY['XS', 'S', 'M', 'L', 'XL'], ARRAY['Black', 'Navy', 'Cream'], 'Silk', 'Summer'),
 ('Modern Abaya', 80.00, 100.00, 'https://images.unsplash.com/photo-1581044777550-4cfa60707c03?w=500', (SELECT id FROM public.categories WHERE name='Women'), 30, 'Elegant and modern clothing for daily wear.', ARRAY['One Size', 'Plus'], ARRAY['Black', 'Charcoal'], 'Cotton Blend', 'All Season'),
 ('Elegant Party Gown', 150.00, 200.00, 'https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=500', (SELECT id FROM public.categories WHERE name='Women'), 12, 'Exclusive gown designed for the perfect night out.', ARRAY['S', 'M', 'L', 'XL'], ARRAY['Red', 'Gold', 'Emerald'], 'Polyester', 'Winter'),
 ('Casual T-Shirt', 25.00, 35.00, 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500', (SELECT id FROM public.categories WHERE name='Women'), 50, 'Comfortable cotton t-shirt for everyday wear.', ARRAY['XS', 'S', 'M', 'L', 'XL', 'XXL'], ARRAY['White', 'Black', 'Gray', 'Navy'], 'Cotton', 'Summer'),
