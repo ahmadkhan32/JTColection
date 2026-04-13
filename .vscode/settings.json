@@ -1,6 +1,6 @@
 {
   "deno.enable": true,
-  "deno.enablePaths": ["supabase/functions"],
+  "deno.enablePaths": ["backend/functions"],
   "deno.lint": true,
   "deno.unstable": [],
   "deno.suggest.imports.hosts": {

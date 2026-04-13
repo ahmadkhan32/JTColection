@@ -8,7 +8,7 @@ JT Collection/
 │   ├── src/
 │   │   ├── components/
 │   │   ├── pages/
-│   │   ├── context/
+│   │   ├── context/        
 │   │   ├── hooks/
 │   │   ├── services/
 │   │   ├── types/
@@ -54,9 +54,9 @@ JT Collection/
 │
 ├── database/                      # Database schema & documentation
 │   └── schemaa.sql
-├── supabase/                      # Supabase functions & migrations
-│   ├── functions/
-│   └── migrations/
+├── supabase/                      # Supabase migrations & seed data
+│   ├── migrations/
+│   └── seed/
 │
 ├── package.json                   # Root package.json with concurrent scripts
 ├── tsconfig.json                  # Root TypeScript config
