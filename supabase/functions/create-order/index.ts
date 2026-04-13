@@ -1,7 +1,7 @@
 // create-order/index.ts
 // Supabase Edge Functions use Deno.serve for modern native performance.
 
-Deno.serve(async (req) => {
+Deno.serve({ port: 8000 }, async (req: Request) => {
   // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response('ok', { 
@@ -12,8 +12,23 @@ Deno.serve(async (req) => {
     });
   }
 
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405 });
+  }
+
   try {
-    const { amount, currency = 'INR' } = await req.json();
+    let requestData: any;
+    try {
+      requestData = await req.json();
+    } catch (jsonError: unknown) {
+      return new Response(JSON.stringify({ error: 'Invalid JSON in request body' }), { 
+        status: 400, 
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    const { amount, currency = 'INR' }: { amount: number; currency?: string } = requestData;
 
     // Mocking Razorpay Order Creation
     const mockOrderId = `order_${Math.random().toString(36).substring(7)}`;
@@ -28,8 +43,11 @@ Deno.serve(async (req) => {
         } 
       }
     );
-  } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+  } catch (err: unknown) {
+    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : 'Unknown error' }), { 
+      status: 500, 
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 });
 

@@ -1,0 +1,28 @@
+{
+  "name": "jt-collections",
+  "version": "1.0.0",
+  "description": "JT Collections - E-commerce order management system",
+  "type": "module",
+  "scripts": {
+    "verify": "node verify-setup.ts",
+    "setup-guide": "node setup-guide.ts",
+    "show-setup": "node show-setup.ts",
+    "run-setup": "node run-setup.ts",
+    "setup": "node setup.ts",
+    "frontend": "cd frontend && npm run dev",
+    "backend": "cd backend && npm run dev",
+    "dev": "concurrently \"npm run frontend\" \"npm run backend\"",
+    "build": "cd frontend && npm run build && cd ../backend && npm run build",
+    "preview": "concurrently \"cd frontend && npm run preview\" \"cd backend && npm start\""
+  },
+  "keywords": [
+    "ecommerce",
+    "shop",
+    "order-management"
+  ],
+  "author": "JT Collections",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

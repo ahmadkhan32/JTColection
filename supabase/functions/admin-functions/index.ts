@@ -1,12 +1,13 @@
 // admin-functions/index.ts
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { addProduct } from './add-product.ts';
+import { updateProduct } from './update-product.ts';
 import { updateOrderStatus } from './update-order-status.ts';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 
-Deno.serve(async (req: Request) => {
+Deno.serve({ port: 8001 }, async (req: Request) => {
   // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response('ok', { 
@@ -15,6 +16,11 @@ Deno.serve(async (req: Request) => {
         'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
       } 
     });
+  }
+
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405 });
   }
 
   try {
@@ -41,7 +47,17 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const { action, payload } = await req.json();
+    let requestData: any;
+    try {
+      requestData = await req.json();
+    } catch (jsonError: unknown) {
+      return new Response(JSON.stringify({ error: 'Invalid JSON in request body' }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    const { action, payload }: { action: string; payload: any } = requestData;
 
     let result;
     switch (action) {
@@ -66,8 +82,8 @@ Deno.serve(async (req: Request) => {
       }
     });
 
-  } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { 
+  } catch (err: unknown) {
+    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : 'Unknown error' }), { 
       status: 500, 
       headers: { 
         'Content-Type': 'application/json', 

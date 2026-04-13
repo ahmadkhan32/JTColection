@@ -148,7 +148,9 @@ DROP POLICY IF EXISTS "Users can view own order items" ON order_items;
 DROP POLICY IF EXISTS "Public viewable products" ON products;
 DROP POLICY IF EXISTS "Safe stock update" ON products;
 DROP POLICY IF EXISTS "Public viewable variations" ON product_variations;
+DROP POLICY IF EXISTS "Admin manage variations" ON product_variations;
 DROP POLICY IF EXISTS "Public viewable images" ON product_images;
+DROP POLICY IF EXISTS "Admin manage images" ON product_images;
 
 CREATE POLICY "Enable insert for everyone" ON orders FOR INSERT WITH CHECK (true);
 CREATE POLICY "Users can view own orders" ON orders FOR SELECT USING (auth.uid() = user_id OR user_id IS NULL);
@@ -160,3 +162,21 @@ CREATE POLICY "Public viewable variations" ON product_variations FOR SELECT USIN
 CREATE POLICY "Admin manage variations" ON product_variations FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Public viewable images" ON product_images FOR SELECT USING (true);
 CREATE POLICY "Admin manage images" ON product_images FOR ALL USING (true) WITH CHECK (true);
+
+-- ════════════════════════════════════════════════════════════════════
+-- 👑 ADMIN SETUP (Run after signing up admin account)
+-- ════════════════════════════════════════════════════════════════════
+
+-- Update admin role for admin account
+-- Uncomment and run after: http://localhost:5173/register
+
+-- UPDATE public.profiles 
+-- SET role = 'admin' 
+-- WHERE id = (
+--   SELECT id FROM auth.users 
+--   WHERE email = 'admin@jtcollections.com'
+-- );
+
+-- Or run this dedicated file: ADMIN_ROLE_SETUP.sql
+
+-- ════════════════════════════════════════════════════════════════════

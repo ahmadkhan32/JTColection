@@ -1,9 +1,34 @@
 // verify-payment/index.ts
 // Supabase Edge Functions use Deno.serve for the modern standard.
 
-Deno.serve(async (req) => {
+Deno.serve({ port: 8003 }, async (req: Request) => {
+  // Handle CORS
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { 
+      headers: { 
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+      } 
+    });
+  }
+
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405 });
+  }
+
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = await req.json();
+    let requestData: any;
+    try {
+      requestData = await req.json();
+    } catch (jsonError: unknown) {
+      return new Response(JSON.stringify({ error: 'Invalid JSON in request body' }), { 
+        status: 400, 
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature }: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string } = requestData;
 
     // Verification Logic (Conceptual)
     // const crypto = await import("node:crypto");
@@ -20,9 +45,9 @@ Deno.serve(async (req) => {
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
-  } catch (err) {
+  } catch (err: unknown) {
     return new Response(
-      JSON.stringify({ success: false, error: err.message }),
+      JSON.stringify({ success: false, error: err instanceof Error ? err.message : 'Unknown error' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
