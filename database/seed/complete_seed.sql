@@ -82,18 +82,33 @@ ON CONFLICT DO NOTHING;
 -- ═══════════════════════════════════════════════════════════════════
 
 INSERT INTO public.product_variations (product_id, color, size, stock, price_adjustment)
-SELECT p.id, 'Black', 'S', 5, 0
-FROM public.products p WHERE p.title = 'Premium Silk Dress'
+SELECT p.id, 'Sky Blue', 'S', 8, 0
+FROM public.products p WHERE p.slug = 'embroidered-lawn-shalwar-kameez'
 ON CONFLICT DO NOTHING;
 
 INSERT INTO public.product_variations (product_id, color, size, stock, price_adjustment)
-SELECT p.id, 'Navy', 'M', 8, 0
-FROM public.products p WHERE p.title = 'Premium Silk Dress'
+SELECT p.id, 'Sky Blue', 'M', 10, 0
+FROM public.products p WHERE p.slug = 'embroidered-lawn-shalwar-kameez'
 ON CONFLICT DO NOTHING;
 
 INSERT INTO public.product_variations (product_id, color, size, stock, price_adjustment)
-SELECT p.id, 'Cream', 'L', 6, 0
-FROM public.products p WHERE p.title = 'Premium Silk Dress'
+SELECT p.id, 'Sky Blue', 'L', 7, 200
+FROM public.products p WHERE p.slug = 'embroidered-lawn-shalwar-kameez'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO public.product_variations (product_id, color, size, stock, price_adjustment)
+SELECT p.id, 'Lavender', 'S', 6, 0
+FROM public.products p WHERE p.slug = 'digital-printed-2-piece-suit'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO public.product_variations (product_id, color, size, stock, price_adjustment)
+SELECT p.id, 'Peach', 'M', 9, 0
+FROM public.products p WHERE p.slug = 'digital-printed-2-piece-suit'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO public.product_variations (product_id, color, size, stock, price_adjustment)
+SELECT p.id, 'Black', 'M', 14, 0
+FROM public.products p WHERE p.slug = 'straight-fit-trouser'
 ON CONFLICT DO NOTHING;
 
 
