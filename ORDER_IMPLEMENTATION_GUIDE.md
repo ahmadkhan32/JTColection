@@ -3,7 +3,7 @@
 ## ✅ Completed Implementation
 
 ### 1. **Database Schema** ✓
-- **File**: `supabase/migrations/schema.sql`
+- **File**: `database/schemaa.sql`
 - Orders table with full customer details
 - Order_items table for line items
 - Product_variations table for size/color variants
@@ -11,7 +11,7 @@
 - Proper foreign key relationships
 
 ### 2. **Type Definitions** ✓
-- **File**: `client/src/types/index.ts`
+- **File**: `frontend/src/types/index.ts`
 - `Order` type with OrderStatus union type
 - `OrderItem` type with product relationship
 - `CartItem` type with all variant fields
@@ -21,7 +21,7 @@
 ### 3. **Services** ✓
 
 #### Order Service
-- **File**: `client/src/services/orderService.ts`
+- **File**: `frontend/src/services/orderService.ts`
 - `placeOrder()` - Creates order and order items, reduces stock
 - `fetchUserOrders()` - Get logged-in user's orders
 - `fetchAllOrders()` - Admin: fetch all orders
@@ -35,7 +35,7 @@
 ### 4. **Hooks** ✓
 
 #### useOrders Hook
-- **File**: `client/src/hooks/useOrders.ts`
+- **File**: `frontend/src/hooks/useOrders.ts`
 - `fetchUserOrders()` - Fetch current user's orders
 - `fetchAllOrders()` - Fetch all orders (admin)
 - `updateOrderStatus()` - Admin status updates
@@ -43,13 +43,13 @@
 - State management with loading, error, orders
 
 #### useCart Hook
-- **File**: `client/src/hooks/useCart.ts`
+- **File**: `frontend/src/hooks/useCart.ts`
 - Existing implementation wraps CartContext
 
 ### 5. **Context & State Management** ✓
 
 #### CartContext
-- **File**: `client/src/context/CartContext.tsx`
+- **File**: `frontend/src/context/CartContext.tsx`
 - `addToCart()` - Add product to cart
 - `removeFromCart()` - Remove item by id/size/color
 - `updateQuantity()` - Update cart item quantity
@@ -61,7 +61,7 @@
 ### 6. **Components** ✓
 
 #### OrdersTable (Admin)
-- **File**: `client/src/components/admin/OrdersTable.tsx`
+- **File**: `frontend/src/components/admin/OrdersTable.tsx`
 - Display all orders in table format
 - Expandable rows showing order items
 - Order ID, customer name, phone, address
@@ -71,7 +71,7 @@
 - Loading states and error handling
 
 #### CheckoutForm
-- **File**: `client/src/components/checkout/CheckoutForm.tsx`
+- **File**: `frontend/src/components/checkout/CheckoutForm.tsx`
 - Full name, phone input
 - Street address, city inputs
 - Popular cities autocomplete
@@ -80,7 +80,7 @@
 ### 7. **Pages** ✓
 
 #### CheckoutPage
-- **File**: `client/src/pages/CheckoutPage.tsx`
+- **File**: `frontend/src/pages/CheckoutPage.tsx`
 - Cart summary with items
 - Shipping cost calculation (Free over $500)
 - Payment method selection (COD / Online)
@@ -89,7 +89,7 @@
 - Redirect to success page with order ID
 
 #### SuccessPage
-- **File**: `client/src/pages/SuccessPage.tsx`
+- **File**: `frontend/src/pages/SuccessPage.tsx`
 - Fetches order data by ID from URL
 - Shows complete order confirmation
 - Order reference number
@@ -100,7 +100,7 @@
 - Links to continue shopping and view orders
 
 #### Admin Orders Page
-- **File**: `client/src/pages/admin/Orders.tsx`
+- **File**: `frontend/src/pages/admin/Orders.tsx`
 - Uses useOrders hook
 - Fetches all orders on mount
 - Passes orders to OrdersTable
@@ -191,7 +191,7 @@ UPDATE public.orders SET status = 'shipped' WHERE id = order_id;
 ## 📦 File Structure Summary
 
 ```
-client/
+frontend/
 ├── src/
 │   ├── types/
 │   │   └── index.ts              ← Type definitions ✓
@@ -214,9 +214,10 @@ client/
 │       └── admin/
 │           └── Orders.tsx        ← Admin orders page ✓
 │
-supabase/
-└── migrations/
-    └── schema.sql               ← Database schema ✓
+database/
+├── schemaa.sql               ← Database schema ✓
+└── seed/
+    └── complete_seed.sql     ← Test data ✓
 ```
 
 ---

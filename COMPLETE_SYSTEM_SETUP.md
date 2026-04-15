@@ -253,12 +253,12 @@ Expected: **Multiple rows** showing policies per table
 
 ## ⚡ FILE LOCATIONS
 
-- **Schema:** `supabase/migrations/schema.sql`
+- **Schema:** `database/schemaa.sql`
 - **Seed Data:** `supabase/seed/complete_seed.sql`
-- **Frontend:** `client/src/`
-- **Services:** `client/src/services/`
-- **Pages:** `client/src/pages/`
-- **Components:** `client/src/components/`
+- **Frontend:** `frontend/src/`
+- **Services:** `frontend/src/services/`
+- **Pages:** `frontend/src/pages/`
+- **Components:** `frontend/src/components/`
 
 ---
 

@@ -52,11 +52,14 @@ JT Collection/
 │   ├── tsconfig.json
 │   └── tsconfig.node.json
 │
-├── database/                      # Database schema & documentation
-│   └── schemaa.sql
-├── supabase/                      # Supabase migrations & seed data
-│   ├── migrations/
+├── database/                      # Database schema & seed data
+│   ├── DATABASE_DOCUMENTATION.md
+│   ├── schemaa.sql
 │   └── seed/
+│       ├── complete_seed.sql
+│       └── seed.sql
+├── supabase/                      # Supabase configuration
+│   └── .env
 │
 ├── package.json                   # Root package.json with concurrent scripts
 ├── tsconfig.json                  # Root TypeScript config

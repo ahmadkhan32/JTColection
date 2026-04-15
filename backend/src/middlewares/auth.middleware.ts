@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from 'express';
-import { supabase } from '../config/supabaseClient.js';
 
 declare global {
   namespace Express {
@@ -9,54 +8,50 @@ declare global {
   }
 }
 
-export const authMiddleware = async (
+export const authMiddleware = (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const authHeader = req.headers.authorization;
+    const userHeader = req.headers.user;
+    console.log('=== AUTH MIDDLEWARE DEBUG ===');
+    console.log('Raw header type:', typeof userHeader);
+    console.log('Raw header value:', userHeader);
+    console.log('Header length:', userHeader ? String(userHeader).length : 0);
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({
-        success: false,
-        message: 'Missing or invalid authorization header',
-      });
+    if (!userHeader) {
+      return res.status(401).json({ message: "Unauthorized - No user header" });
     }
 
-    const token = authHeader.replace('Bearer ', '');
-
-    // Verify the token with Supabase
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser(token);
-
-    if (error || !user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid or expired token',
-      });
+    // Handle both string and object formats
+    let user;
+    if (typeof userHeader === 'string') {
+      try {
+        console.log('Attempting to parse string header...');
+        user = JSON.parse(userHeader);
+        console.log('Successfully parsed user:', user);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        console.error('Failed to parse string:', userHeader);
+        return res.status(401).json({ message: "Unauthorized - Invalid user format" });
+      }
+    } else if (typeof userHeader === 'object') {
+      console.log('Header is already an object');
+      user = userHeader;
+    } else {
+      return res.status(401).json({ message: "Unauthorized - Invalid user type" });
     }
 
-    // Fetch user role from database
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
+    if (!user || typeof user !== 'object') {
+      return res.status(401).json({ message: "Unauthorized - Invalid user object" });
+    }
 
-    req.user = {
-      id: user.id,
-      email: user.email,
-      role: profile?.role || 'user',
-    };
-
+    req.user = user;
+    console.log('User set successfully:', user);
     next();
   } catch (error) {
-    res.status(401).json({
-      success: false,
-      message: 'Authentication failed',
-    });
+    console.error('Auth middleware error:', error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };

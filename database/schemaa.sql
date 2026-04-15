@@ -73,10 +73,14 @@ CREATE TABLE IF NOT EXISTS orders (
   user_id uuid REFERENCES users(id) ON DELETE SET NULL,
   customer_name text NOT NULL DEFAULT 'Guest',
   phone text NOT NULL DEFAULT '',
+  email text,
   address text NOT NULL DEFAULT '',
   city text NOT NULL DEFAULT '',
+  postal_code text DEFAULT '',
   total_amount numeric NOT NULL DEFAULT 0,
   status text DEFAULT 'pending',
+  payment_method text DEFAULT 'COD',
+  payment_status text DEFAULT 'pending',
   created_at timestamptz DEFAULT now()
 );
 
@@ -94,10 +98,17 @@ CREATE TABLE IF NOT EXISTS order_items (
 
 -- ── 3. SAFE ALTERATIONS (for existing databases) ─────────────────────────
 
+-- Allow guest orders (user_id nullable)
+ALTER TABLE orders ALTER COLUMN user_id DROP NOT NULL;
+
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_name text NOT NULL DEFAULT 'Guest';
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS phone text NOT NULL DEFAULT '';
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS address text NOT NULL DEFAULT '';
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS city text NOT NULL DEFAULT '';
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS email text;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS postal_code text DEFAULT '';
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_method text DEFAULT 'COD';
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status text DEFAULT 'pending';
 ALTER TABLE products ADD COLUMN IF NOT EXISTS fabric text;
 ALTER TABLE products ADD COLUMN IF NOT EXISTS season text;
 ALTER TABLE products ADD COLUMN IF NOT EXISTS sizes text[] DEFAULT '{}';

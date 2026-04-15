@@ -43,7 +43,7 @@
 **Time: 2-3 minutes**
 
 1. Open: https://supabase.com/dashboard/project/xmssdsjhinitkykdpatb/sql/new
-2. Open file: `supabase/migrations/schema.sql`
+2. Open file: `database/schemaa.sql`
 3. Copy ALL content
 4. Paste into Supabase SQL Editor
 5. Click **RUN** button
@@ -195,7 +195,7 @@ WHERE id = (
 
 ```
 JT Colection/
-├── client/
+├── frontend/
 │   ├── src/
 │   │   ├── components/       (React components)
 │   │   ├── pages/           (Page components)
@@ -205,11 +205,14 @@ JT Colection/
 │   │   └── types/           (TypeScript types)
 │   ├── .env                 (Supabase credentials ✓)
 │   └── package.json
-├── supabase/
-│   ├── migrations/
-│   │   └── schema.sql       (Database schema ← RUN THIS)
+├── database/
+│   ├── DATABASE_DOCUMENTATION.md
+│   ├── schemaa.sql           (Database schema ← RUN THIS)
 │   └── seed/
-│       └── complete_seed.sql (Test data ← RUN THIS)
+│       ├── complete_seed.sql (Test data ← RUN THIS)
+│       └── seed.sql
+├── supabase/
+│   └── .env                 (Supabase credentials ✓)
 ├── COMPLETE_SETUP.md        (↑ READ THIS - Most Important!)
 ├── ADMIN_DATABASE_SETUP.md
 ├── SETUP_GUIDE.md
@@ -245,7 +248,7 @@ npm run type-check
 
 ## 🛡️ Important: Environment Variables
 
-**Already configured in:** `client/.env`
+**Already configured in:** `frontend/.env`
 
 ```
 VITE_SUPABASE_URL=https://xmssdsjhinitkykdpatb.supabase.co

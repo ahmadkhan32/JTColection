@@ -7,7 +7,7 @@ A full-stack premium e-commerce solution built with React, TypeScript, Tailwind 
 ```
 ecommerce-app/
 │
-├── client/ (React + TypeScript)
+├── frontend/ (React + TypeScript)
 ├── supabase/ (Backend functions)
 ├── database/ (SQL schema)
 ├── .env
@@ -21,7 +21,7 @@ ecommerce-app/
 
 ## ⚙️ Setup
 1.  **Frontend**: `cd client && npm install && npm run dev`
-2.  **Environment**: Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` to `client/.env`.
+2.  **Environment**: Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` to `frontend/.env`.
 3.  **Database**: Run the SQL in `database/schema.sql` within your Supabase SQL Editor.
 
 ## ✅ Features

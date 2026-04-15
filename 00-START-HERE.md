@@ -133,7 +133,7 @@
 ### 1️⃣ Run Database Schema (2-3 minutes)
 ```
 Go to: https://supabase.com/dashboard/project/xmssdsjhinitkykdpatb/sql/new
-Run: supabase/migrations/schema.sql
+Run: database/schemaa.sql
 Expected: ✅ Tables created
 ```
 
@@ -184,7 +184,7 @@ JT Collection/
 ├── 📄 setup.ps1
 ├── 📄 setup-guide.js
 │
-├── client/ (Frontend - React/Vite)
+├── frontend/ (Frontend - React/Vite)
 │   ├── src/
 │   │   ├── pages/         (6 page components)
 │   │   ├── components/    (15+ components)
@@ -199,15 +199,15 @@ JT Collection/
 │   ├── vite.config.ts
 │   └── tailwind.config.js
 │
-├── supabase/
-│   ├── migrations/
-│   │   └── schema.sql     ← RUN THIS FIRST
+├── database/
+│   ├── DATABASE_DOCUMENTATION.md
+│   ├── schemaa.sql         ← RUN THIS FIRST
 │   └── seed/
-│       └── complete_seed.sql ← RUN THIS SECOND
+│       ├── complete_seed.sql ← RUN THIS SECOND
+│       └── seed.sql
 │
-└── database/
-    ├── DATABASE_DOCUMENTATION.md
-    └── schema.sql
+├── supabase/
+│   └── .env               ← Supabase credentials
 ```
 
 ---

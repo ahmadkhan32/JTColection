@@ -30,7 +30,7 @@ Write-Host "   2. Open your 'JT Collections' project" -ForegroundColor Gray
 Write-Host "   3. Go to SQL Editor (left sidebar)" -ForegroundColor Gray
 Write-Host "   4. Click '+ New Query'" -ForegroundColor Gray
 Write-Host "   5. Copy this file content:" -ForegroundColor Gray
-Write-Host "      📄 supabase/migrations/schema.sql" -ForegroundColor White
+Write-Host "      📄 database/schemaa.sql" -ForegroundColor White
 Write-Host "   6. Paste it in Supabase SQL Editor" -ForegroundColor Gray
 Write-Host "   7. Click 'Run' button" -ForegroundColor Gray
 Write-Host ""

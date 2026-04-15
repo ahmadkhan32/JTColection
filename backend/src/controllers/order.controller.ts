@@ -1,106 +1,99 @@
 import { Request, Response } from 'express';
-import { asyncHandler, AppError } from '../utils/errorHandler.js';
-import { OrderService } from '../services/order.service.js';
+import { supabase } from '../config/supabaseClient.js';
 
-const orderService = new OrderService();
+export const createOrder = async (req: Request, res: Response) => {
+  const {
+    items = [],
+    totalAmount,
+    total_amount,
+    address,
+    city,
+    postal_code,
+    customer_name,
+    email,
+    phone,
+    paymentMethod,
+    payment_method,
+    status,
+    userId,
+  } = req.body;
+  const resolvedUserId = req.user?.id || userId;
 
-export const createOrder = asyncHandler(async (req: Request, res: Response) => {
-  if (!req.user) {
-    throw new AppError(401, 'User not authenticated');
+  try {
+    const normalizedTotal = Number(totalAmount ?? total_amount ?? 0);
+    const normalizedPaymentMethod = paymentMethod || payment_method || 'COD';
+    const normalizedStatus = status || 'pending';
+
+    const { data: order } = await supabase
+      .from("orders")
+      .insert([
+        {
+          user_id: resolvedUserId,
+          total_amount: normalizedTotal,
+          address,
+          city,
+          postal_code,
+          customer_name,
+          email,
+          phone,
+          payment_method: normalizedPaymentMethod,
+          status: normalizedStatus,
+        }
+      ])
+      .select()
+      .single();
+
+    const orderItems = items.map((item: any) => ({
+      order_id: order.id,
+      product_id: item.product_id || item.productId,
+      quantity: item.quantity,
+      price: item.price,
+      size: item.size,
+      color: item.color,
+    }));
+
+    if (orderItems.length > 0) {
+      await supabase.from("order_items").insert(orderItems);
+
+      // Decrement stock for each item
+      for (const item of items) {
+        const pid = item.product_id || item.productId;
+        if (!pid) continue;
+        const { data: product } = await supabase
+          .from('products')
+          .select('stock')
+          .eq('id', pid)
+          .single();
+        if (product) {
+          const newStock = Math.max(0, (product.stock || 0) - item.quantity);
+          await supabase.from('products').update({ stock: newStock }).eq('id', pid);
+        }
+      }
+    }
+
+    res.json({ success: true, id: order.id, order });
+
+  } catch (err) {
+    res.status(500).json({ error: "Order failed" });
   }
+};
 
-  const order = await orderService.createOrder({
-    user_id: req.user.id,
-    ...req.body,
-  });
+export const getUserOrders = async (req: Request, res: Response) => {
+  const targetUserId = req.params.id || req.user?.id;
 
-  res.status(201).json({
-    success: true,
-    message: 'Order created successfully',
-    order,
-  });
-});
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*, order_items(*, products(*))')
+      .eq('user_id', targetUserId)
+      .order('created_at', { ascending: false });
 
-export const getUserOrders = asyncHandler(async (req: Request, res: Response) => {
-  if (!req.user) {
-    throw new AppError(401, 'User not authenticated');
+    if (error) {
+      return res.status(500).json({ message: error.message });
+    }
+
+    return res.json({ success: true, orders: data || [] });
+  } catch (err) {
+    return res.status(500).json({ message: 'Failed to fetch user orders' });
   }
-
-  const { limit = 10, offset = 0 } = req.query;
-  const { orders, total } = await orderService.getOrdersByUserId(
-    req.user.id,
-    parseInt(limit as string),
-    parseInt(offset as string)
-  );
-
-  res.json({
-    success: true,
-    orders,
-    pagination: {
-      limit: parseInt(limit as string),
-      offset: parseInt(offset as string),
-      total,
-    },
-  });
-});
-
-export const getAllOrders = asyncHandler(async (req: Request, res: Response) => {
-  const { limit = 10, offset = 0 } = req.query;
-  const { orders, total } = await orderService.getAllOrders(
-    parseInt(limit as string),
-    parseInt(offset as string)
-  );
-
-  res.json({
-    success: true,
-    orders,
-    pagination: {
-      limit: parseInt(limit as string),
-      offset: parseInt(offset as string),
-      total,
-    },
-  });
-});
-
-export const getOrderById = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const order = await orderService.getOrderById(id);
-
-  res.json({
-    success: true,
-    order,
-  });
-});
-
-export const updateOrder = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const order = await orderService.updateOrder({
-    id,
-    ...req.body,
-  });
-
-  res.json({
-    success: true,
-    message: 'Order updated successfully',
-    order,
-  });
-});
-
-export const deleteOrder = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  await orderService.deleteOrder(id);
-
-  res.json({
-    success: true,
-    message: 'Order deleted successfully',
-  });
-});
-
-export const getOrderStats = asyncHandler(async (req: Request, res: Response) => {
-  const stats = await orderService.getOrderStats();
-
-  res.json({
-    success: true,
-    stats,
-  });
-});
+};

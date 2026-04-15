@@ -37,7 +37,7 @@ This will:
 #### Step 1: Create Tables
 1. Go: https://supabase.com/dashboard/project/xmssdsjhinitkykdpatb/sql/new
 2. Click: **+ New Query**
-3. Open file: `supabase/migrations/schema.sql`
+3. Open file: `database/schemaa.sql`
 4. Copy ALL content
 5. Paste into SQL Editor
 6. Click: **RUN**
@@ -89,7 +89,7 @@ WHERE id = (
 | `EXECUTION_GUIDE.md` | Step-by-step setup guide |
 | `COMPLETE_SETUP.md` | Detailed SQL guide |
 | `SQL_COMMANDS.sql` | Copy-paste SQL reference |
-| `supabase/migrations/schema.sql` | Database schema |
+| `database/schemaa.sql` | Database schema |
 | `supabase/seed/complete_seed.sql` | Sample data |
 
 ---

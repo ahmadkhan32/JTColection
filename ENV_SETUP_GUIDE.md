@@ -16,7 +16,7 @@
   - This is the "anon" key (starts with `eyJ...`)
 
 ### Step 3: Update .env.local
-1. Open: `client/.env.local`
+1. Open: `frontend/.env.local`
 2. Replace `YOUR_SUPABASE_ANON_KEY_HERE` with your actual key
 3. Save the file
 
@@ -74,7 +74,7 @@ After setting up .env.local:
 - **Restart:** Run `npm run dev` again
 
 ### Error: "Missing environment variable"
-- **Fix:** Make sure .env.local file exists in `client/` folder
+- **Fix:** Make sure .env.local file exists in `frontend/` folder
 - **Check:** File should have both VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY
 - **Restart:** Kill terminal and run `npm run dev` again
 
@@ -93,10 +93,10 @@ After setting up .env.local:
 
 | File | Purpose |
 |------|---------|
-| `client/.env.local` | Environment variables for frontend |
-| `client/src/services/supabaseClient.ts` | Supabase client initialization |
-| `client/vite.config.ts` | Vite configuration |
-| `client/tsconfig.json` | TypeScript configuration |
+| `frontend/.env.local` | Environment variables for frontend |
+| `frontend/src/services/supabaseClient.ts` | Supabase client initialization |
+| `frontend/vite.config.ts` | Vite configuration |
+| `frontend/tsconfig.json` | TypeScript configuration |
 
 ---
 

@@ -15,7 +15,7 @@ Backend:  ✅ Supabase Cloud (PostgreSQL)
 
 Your system is **99% ready**. Just needs one file to be updated:
 
-**File:** `client/.env.local`
+**File:** `frontend/.env.local`
 
 **What to add:** Your Supabase ANON_KEY
 
@@ -46,7 +46,7 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhtc3Nkc2p
 
 ### Step 3: Update .env.local
 
-**File location:** `client/.env.local`
+**File location:** `frontend/.env.local`
 
 **Find this line:**
 ```
@@ -175,11 +175,11 @@ Before testing frontend:
 
 | File | Purpose |
 |------|---------|
-| `client/.env.local` | Environment variables - EDIT THIS |
+| `frontend/.env.local` | Environment variables - EDIT THIS |
 | `ENV_SETUP_GUIDE.md` | Detailed env setup guide |
 | `MASTER_SETUP_GUIDE.md` | Complete system setup guide |
 | `QUICK_VERIFICATION.sql` | SQL verification queries |
-| `client/src/services/supabaseClient.ts` | Supabase client configuration |
+| `frontend/src/services/supabaseClient.ts` | Supabase client configuration |
 
 ---
 
@@ -207,7 +207,7 @@ Before testing frontend:
    - Copy the "anon public" key value
 
 2. **Next (1 minute):**
-   - Open: `client/.env.local`
+   - Open: `frontend/.env.local`
    - Replace `YOUR_SUPABASE_ANON_KEY_HERE` with your key
    - Save the file
 

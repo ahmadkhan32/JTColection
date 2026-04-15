@@ -29,7 +29,7 @@
 ### STEP 1: Create Database Tables
 1. Go to: https://supabase.com/dashboard/project/xmssdsjhinitkykdpatb/sql/new
 2. Click: **+ New Query**
-3. Open file: `supabase/migrations/schema.sql` (in your editor)
+3. Open file: `database/schemaa.sql` (in your editor)
 4. **Copy ALL** the content
 5. **Paste** into Supabase SQL Editor
 6. Click: **RUN** button
@@ -85,7 +85,7 @@ WHERE id = (
 
 | File | Purpose |
 |------|---------|
-| `supabase/migrations/schema.sql` | **← COPY THIS FIRST** (create tables) |
+| `database/schemaa.sql` | **← COPY THIS FIRST** (create tables) |
 | `supabase/seed/complete_seed.sql` | **← COPY THIS SECOND** (seed data) |
 | `SETUP_NOW.md` | Quick reference |
 | `00-START-HERE.md` | Complete overview |
@@ -212,7 +212,7 @@ Database:    ⏳ AWAITING YOUR ACTION (5 steps above)
 
 ### Here's what to do RIGHT NOW:
 
-1. **Open file:** `supabase/migrations/schema.sql`
+1. **Open file:** `database/schemaa.sql`
 2. **Copy all content**
 3. **Go to:** https://supabase.com/dashboard/project/xmssdsjhinitkykdpatb/sql/new
 4. **Open:** SQL Editor → + New Query
@@ -228,7 +228,7 @@ Then create your admin account, assign the role, and test!
 ## 📌 TLDR (Too Long, Didn't Read)
 
 **Copy & paste these files into Supabase SQL Editor:**
-1. `supabase/migrations/schema.sql` → RUN
+1. `database/schemaa.sql` → RUN
 2. `supabase/seed/complete_seed.sql` → RUN
 
 **Then:**

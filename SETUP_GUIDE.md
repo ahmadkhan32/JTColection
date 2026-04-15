@@ -4,7 +4,7 @@
 
 ### Client Environment (.env.local)
 
-Create a file `client/.env.local`:
+Create a file `frontend/.env.local`:
 
 ```env
 # Supabase Configuration
@@ -30,7 +30,7 @@ VITE_API_URL=http://localhost:3001
 
 ```bash
 # In Supabase SQL Editor, run:
-# supabase/migrations/schema.sql
+# database/schemaa.sql
 ```
 
 Copy the entire `schema.sql` file and paste it into Supabase SQL Editor, then execute.
@@ -82,7 +82,7 @@ Server will run on `http://localhost:5173`
 
 ```
 JT Collection/
-├── client/
+├── frontend/
 │   ├── src/
 │   │   ├── types/
 │   │   │   └── index.ts              ← Order/Product types
@@ -121,14 +121,15 @@ JT Collection/
 │   ├── package.json
 │   └── vite.config.ts
 │
-├── supabase/
-│   ├── migrations/
-│   │   └── schema.sql                ← Database schema (UPDATED)
-│   └── functions/
-│
 ├── database/
-│   ├── schemaa.sql
-│   └── DATABASE_DOCUMENTATION.md
+│   ├── DATABASE_DOCUMENTATION.md
+│   ├── schemaa.sql                   ← Database schema
+│   └── seed/
+│       ├── complete_seed.sql         ← Seed data
+│       └── seed.sql
+│
+├── supabase/
+│   └── .env                          ← Supabase credentials
 │
 ├── ORDER_IMPLEMENTATION_GUIDE.md     ← What was implemented
 ├── SETUP_GUIDE.md                    ← This file
@@ -349,8 +350,8 @@ const order = await orderService.fetchOrderById(id);
 ## Support & Documentation
 
 - **Order Implementation**: See `ORDER_IMPLEMENTATION_GUIDE.md`
-- **Database Schema**: See `supabase/migrations/schema.sql`
-- **Type Definitions**: See `client/src/types/index.ts`
+- **Database Schema**: See `database/schemaa.sql`
+- **Type Definitions**: See `frontend/src/types/index.ts`
 - **Supabase Docs**: https://supabase.com/docs
 - **React Docs**: https://react.dev
 

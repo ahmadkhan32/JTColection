@@ -22,7 +22,7 @@
 **What to do:**
 1. Go to: https://supabase.com/dashboard/project/xmssdsjhinitkykdpatb/sql/new
 2. Click **New Query** button
-3. Open file: `supabase/migrations/schema.sql`
+3. Open file: `database/schemaa.sql`
 4. **Select ALL** (Ctrl+A)
 5. **Copy** (Ctrl+C)
 6. Go back to Supabase SQL Editor
@@ -340,7 +340,7 @@ SELECT
 
 | File | Purpose |
 |------|---------|
-| `supabase/migrations/schema.sql` | Database schema (Step 1) |
+| `database/schemaa.sql` | Database schema (Step 1) |
 | `supabase/seed/complete_seed.sql` | Seed data (Step 2) |
 | `QUICK_VERIFICATION.sql` | Quick verification queries |
 | `VERIFICATION_QUERIES.sql` | Detailed verification guide |

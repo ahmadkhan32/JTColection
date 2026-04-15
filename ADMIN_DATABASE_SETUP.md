@@ -4,7 +4,7 @@
 
 1. Go to **Supabase Dashboard** → **SQL Editor**
 2. Create a new query
-3. Copy **entire content** from `supabase/migrations/schema.sql`
+3. Copy **entire content** from `database/schemaa.sql`
 4. Paste and execute ✅
 
 ---
@@ -176,7 +176,7 @@ WHERE title ILIKE '%dress%' OR title ILIKE '%shirt%';
 
 ## Environment Variables
 
-Create `.env.local` in `client/` folder:
+Create `.env.local` in `frontend/` folder:
 
 ```env
 VITE_SUPABASE_URL=https://your-project.supabase.co
@@ -191,9 +191,9 @@ Get these from **Supabase** → **Settings** → **API**
 
 | File | Purpose |
 |------|---------|
-| `supabase/migrations/schema.sql` | Database tables, RLS policies, triggers |
+| `database/schemaa.sql` | Database tables, RLS policies, triggers |
 | `supabase/seed/complete_seed.sql` | Categories, products, sample data |
-| `client/.env.local` | Supabase credentials |
+| `frontend/.env.local` | Supabase credentials |
 
 ---
 

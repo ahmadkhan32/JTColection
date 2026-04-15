@@ -21,15 +21,17 @@
     "noUnusedParameters": false,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "ignoreDeprecations": "6.0"
   },
   "include": [
-    "*.ts",
-    "supabase/**/*.ts"
+    "backend/**/*.ts",
+    "frontend/**/*.ts"
   ],
   "exclude": [
     "node_modules",
-    "client/**/*",
-    "dist"
+    "dist",
+    "backend/node_modules",
+    "frontend/node_modules"
   ]
 }
