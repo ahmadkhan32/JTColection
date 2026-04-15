@@ -14,9 +14,11 @@ export const createProduct = asyncHandler(async (req: Request, res: Response) =>
 });
 
 export const getProducts = asyncHandler(async (req: Request, res: Response) => {
-  const { category_id, limit = 10, offset = 0 } = req.query;
+  const { category_id, subcategory_id, search, limit = 10, offset = 0 } = req.query;
   const { products, total } = await productService.getProducts({
     category_id: category_id as string,
+    subcategory_id: subcategory_id as string,
+    search: search as string,
     limit: parseInt(limit as string),
     offset: parseInt(offset as string),
   });
@@ -82,5 +84,15 @@ export const getCategoryById = asyncHandler(async (req: Request, res: Response) 
   res.json({
     success: true,
     category,
+  });
+});
+
+export const getSubcategories = asyncHandler(async (req: Request, res: Response) => {
+  const { category_id } = req.query;
+  const subcategories = await productService.getSubcategories(category_id as string | undefined);
+
+  res.json({
+    success: true,
+    subcategories,
   });
 });

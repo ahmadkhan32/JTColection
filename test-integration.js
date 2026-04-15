@@ -9,7 +9,7 @@ import http from 'http';
 import { URL } from 'url';
 
 const BACKEND_URL = 'http://localhost:3001';
-const FRONTEND_URL = 'http://localhost:5175';
+const FRONTEND_URL = 'http://localhost:5174';
 
 // Colors for terminal output
 const colors = {

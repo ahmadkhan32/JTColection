@@ -10,6 +10,10 @@ import {
   adminCreateCategory,
   adminUpdateCategory,
   adminDeleteCategory,
+  adminGetSubcategories,
+  adminCreateSubcategory,
+  adminUpdateSubcategory,
+  adminDeleteSubcategory,
   adminGetUsers,
   adminGetAnalytics,
 } from '../controllers/admin.controller.js';
@@ -39,6 +43,12 @@ router.get('/categories', adminGetCategories);
 router.post('/categories', adminCreateCategory);
 router.put('/categories/:id', adminUpdateCategory);
 router.delete('/categories/:id', adminDeleteCategory);
+
+// Subcategories
+router.get('/subcategories', adminGetSubcategories);
+router.post('/subcategories', adminCreateSubcategory);
+router.put('/subcategories/:id', adminUpdateSubcategory);
+router.delete('/subcategories/:id', adminDeleteSubcategory);
 
 // Users
 router.get('/users', adminGetUsers);

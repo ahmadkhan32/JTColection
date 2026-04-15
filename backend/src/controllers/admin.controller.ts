@@ -60,7 +60,7 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
 export const adminGetProducts = async (req: Request, res: Response) => {
   const { data, error } = await supabase
     .from('products')
-    .select('*, categories(name)')
+    .select('*, categories(name, slug), subcategories(name, slug)')
     .order('created_at', { ascending: false });
 
   if (error) return res.status(500).json({ error: error.message });
@@ -103,7 +103,7 @@ export const adminDeleteProduct = async (req: Request, res: Response) => {
 export const adminGetCategories = async (req: Request, res: Response) => {
   const { data, error } = await supabase
     .from('categories')
-    .select('*')
+    .select('*, subcategories(*)')
     .order('name', { ascending: true });
 
   if (error) return res.status(500).json({ error: error.message });
@@ -139,6 +139,53 @@ export const adminDeleteCategory = async (req: Request, res: Response) => {
   const { error } = await supabase.from('categories').delete().eq('id', id);
   if (error) return res.status(400).json({ error: error.message });
   res.json({ success: true, message: 'Category deleted' });
+};
+
+export const adminGetSubcategories = async (req: Request, res: Response) => {
+  const { category_id } = req.query;
+  let query = supabase
+    .from('subcategories')
+    .select('*, categories(name, slug)')
+    .order('name', { ascending: true });
+
+  if (category_id) {
+    query = query.eq('category_id', category_id);
+  }
+
+  const { data, error } = await query;
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ success: true, subcategories: data || [] });
+};
+
+export const adminCreateSubcategory = async (req: Request, res: Response) => {
+  const { data, error } = await supabase
+    .from('subcategories')
+    .insert(req.body)
+    .select()
+    .single();
+
+  if (error) return res.status(400).json({ error: error.message });
+  res.status(201).json({ success: true, subcategory: data });
+};
+
+export const adminUpdateSubcategory = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { data, error } = await supabase
+    .from('subcategories')
+    .update(req.body)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) return res.status(400).json({ error: error.message });
+  res.json({ success: true, subcategory: data });
+};
+
+export const adminDeleteSubcategory = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { error } = await supabase.from('subcategories').delete().eq('id', id);
+  if (error) return res.status(400).json({ error: error.message });
+  res.json({ success: true, message: 'Subcategory deleted' });
 };
 
 // ── Users ─────────────────────────────────────────────────────────────────────

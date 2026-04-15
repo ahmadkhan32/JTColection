@@ -2,25 +2,52 @@ import { supabase } from '../config/supabaseClient.js';
 import { AppError } from '../utils/errorHandler.js';
 
 export interface CreateProductInput {
-  name: string;
+  title: string;
+  slug?: string;
   description: string;
   price: number;
+  old_price?: number;
   discount_price?: number;
   category_id: string;
-  stock_quantity: number;
+  subcategory_id?: string;
+  stock: number;
   sku?: string;
+  image_url?: string;
   images?: string[];
+  sizes?: string[];
+  colors?: string[];
+  fabric?: string;
+  work?: string;
+  pieces?: number;
+  includes?: string[];
+  care_instructions?: string;
+  is_new_arrival?: boolean;
+  is_on_sale?: boolean;
   variations?: any[];
 }
 
 export interface UpdateProductInput {
   id: string;
-  name?: string;
+  title?: string;
+  slug?: string;
   description?: string;
   price?: number;
+  old_price?: number;
   discount_price?: number;
   category_id?: string;
-  stock_quantity?: number;
+  subcategory_id?: string;
+  stock?: number;
+  image_url?: string;
+  images?: string[];
+  sizes?: string[];
+  colors?: string[];
+  fabric?: string;
+  work?: string;
+  pieces?: number;
+  includes?: string[];
+  care_instructions?: string;
+  is_new_arrival?: boolean;
+  is_on_sale?: boolean;
 }
 
 export class ProductService {
@@ -28,12 +55,26 @@ export class ProductService {
     const { data, error } = await supabase
       .from('products')
       .insert({
-        name: input.name,
+        title: input.title,
+        slug: input.slug,
         description: input.description,
         price: input.price,
+        old_price: input.old_price,
         discount_price: input.discount_price,
         category_id: input.category_id,
-        stock_quantity: input.stock_quantity,
+        subcategory_id: input.subcategory_id,
+        stock: input.stock,
+        image_url: input.image_url,
+        images: input.images,
+        sizes: input.sizes,
+        colors: input.colors,
+        fabric: input.fabric,
+        work: input.work,
+        pieces: input.pieces,
+        includes: input.includes,
+        care_instructions: input.care_instructions,
+        is_new_arrival: input.is_new_arrival,
+        is_on_sale: input.is_on_sale,
         sku: input.sku,
       })
       .select()
@@ -43,31 +84,79 @@ export class ProductService {
     return data;
   }
 
-  async getProducts(filters?: { category_id?: string; limit?: number; offset?: number }) {
-    let query = supabase.from('products').select('*');
+  async getProducts(filters?: { category_id?: string; subcategory_id?: string; limit?: number; offset?: number; search?: string }) {
+    let query = supabase
+      .from('products')
+      .select('*, categories(name), subcategories(name)');
 
     if (filters?.category_id) {
       query = query.eq('category_id', filters.category_id);
     }
 
-    const { data, error, count } = await query
+    if (filters?.subcategory_id) {
+      query = query.eq('subcategory_id', filters.subcategory_id);
+    }
+
+    if (filters?.search) {
+      query = query.ilike('title', `%${filters.search}%`);
+    }
+
+    let { data, error, count } = await query
       .range(filters?.offset || 0, (filters?.offset || 0) + (filters?.limit || 10) - 1)
       .order('created_at', { ascending: false });
+
+    // Fallback for older schemas where subcategories table/relationship is not available yet
+    if (error) {
+      let fallbackQuery = supabase.from('products').select('*, categories(name)');
+
+      if (filters?.category_id) {
+        fallbackQuery = fallbackQuery.eq('category_id', filters.category_id);
+      }
+      if (filters?.search) {
+        fallbackQuery = fallbackQuery.ilike('title', `%${filters.search}%`);
+      }
+
+      const fallback = await fallbackQuery
+        .range(filters?.offset || 0, (filters?.offset || 0) + (filters?.limit || 10) - 1)
+        .order('created_at', { ascending: false });
+
+      data = fallback.data;
+      error = fallback.error;
+      count = fallback.count;
+    }
 
     if (error) throw new AppError(400, error.message);
     return { products: data || [], total: count || 0 };
   }
 
   async getProductById(id: string) {
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('products')
       .select(`
         *,
+        categories(name),
+        subcategories(name),
         product_variations(*),
         product_images(*)
       `)
       .eq('id', id)
       .single();
+
+    if (error) {
+      const fallback = await supabase
+        .from('products')
+        .select(`
+          *,
+          categories(name),
+          product_variations(*),
+          product_images(*)
+        `)
+        .eq('id', id)
+        .single();
+
+      data = fallback.data;
+      error = fallback.error;
+    }
 
     if (error) throw new AppError(404, 'Product not found');
     return data;
@@ -77,12 +166,26 @@ export class ProductService {
     const { data, error } = await supabase
       .from('products')
       .update({
-        ...(input.name && { name: input.name }),
+        ...(input.title && { title: input.title }),
+        ...(input.slug && { slug: input.slug }),
         ...(input.description && { description: input.description }),
-        ...(input.price && { price: input.price }),
+        ...(input.price !== undefined && { price: input.price }),
+        ...(input.old_price !== undefined && { old_price: input.old_price }),
         ...(input.discount_price !== undefined && { discount_price: input.discount_price }),
         ...(input.category_id && { category_id: input.category_id }),
-        ...(input.stock_quantity !== undefined && { stock_quantity: input.stock_quantity }),
+        ...(input.subcategory_id !== undefined && { subcategory_id: input.subcategory_id }),
+        ...(input.stock !== undefined && { stock: input.stock }),
+        ...(input.image_url !== undefined && { image_url: input.image_url }),
+        ...(input.images !== undefined && { images: input.images }),
+        ...(input.sizes !== undefined && { sizes: input.sizes }),
+        ...(input.colors !== undefined && { colors: input.colors }),
+        ...(input.fabric !== undefined && { fabric: input.fabric }),
+        ...(input.work !== undefined && { work: input.work }),
+        ...(input.pieces !== undefined && { pieces: input.pieces }),
+        ...(input.includes !== undefined && { includes: input.includes }),
+        ...(input.care_instructions !== undefined && { care_instructions: input.care_instructions }),
+        ...(input.is_new_arrival !== undefined && { is_new_arrival: input.is_new_arrival }),
+        ...(input.is_on_sale !== undefined && { is_on_sale: input.is_on_sale }),
       })
       .eq('id', input.id)
       .select()
@@ -98,7 +201,10 @@ export class ProductService {
   }
 
   async getCategories() {
-    const { data, error } = await supabase.from('categories').select('*');
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*, subcategories(*)')
+      .order('name', { ascending: true });
     if (error) throw new AppError(400, error.message);
     return data || [];
   }
@@ -106,11 +212,26 @@ export class ProductService {
   async getCategoryById(id: string) {
     const { data, error } = await supabase
       .from('categories')
-      .select('*')
+      .select('*, subcategories(*)')
       .eq('id', id)
       .single();
 
     if (error) throw new AppError(404, 'Category not found');
     return data;
+  }
+
+  async getSubcategories(categoryId?: string) {
+    let query = supabase
+      .from('subcategories')
+      .select('*, categories(name, slug)')
+      .order('name', { ascending: true });
+
+    if (categoryId) {
+      query = query.eq('category_id', categoryId);
+    }
+
+    const { data, error } = await query;
+    if (error) throw new AppError(400, error.message);
+    return data || [];
   }
 }

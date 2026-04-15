@@ -4,42 +4,76 @@
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════
--- 1. SEED CATEGORIES
+-- 1. SEED CATEGORIES + SUBCATEGORIES
 -- ═══════════════════════════════════════════════════════════════════
 
-INSERT INTO public.categories (name, description, image_url) VALUES
-  ('Women', 'Elegant clothing for the modern woman.', 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=500'),
-  ('Men', 'Premium menswear collection.', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500'),
-  ('Accessories', 'Luxury handbags and designer complements.', 'https://images.unsplash.com/photo-1584916201218-f4242ceb4809?w=500'),
-  ('Footwear', 'Comfortable and stylish shoes for every occasion.', 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=500')
-ON CONFLICT (name) DO NOTHING;
+INSERT INTO public.categories (name, slug, description, image_url) VALUES
+   ('Clothing', 'clothing', 'Core women clothing category with stitched and unstitched collections.', 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=500'),
+   ('Bottom Wear', 'bottom-wear', 'Bottom wear essentials for modern eastern and fusion outfits.', 'https://images.unsplash.com/photo-1485230895905-ec40ba36b9bc?w=500'),
+   ('Accessories', 'accessories', 'Dupatta, scarves and handbags.', 'https://images.unsplash.com/photo-1584916201218-f4242ceb4809?w=500'),
+   ('Special', 'special', 'Fresh edits including new arrivals and sale.', 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=500')
+ON CONFLICT (name) DO UPDATE SET slug = EXCLUDED.slug;
+
+INSERT INTO public.subcategories (category_id, name, slug) VALUES
+   ((SELECT id FROM public.categories WHERE slug='clothing'), 'Unstitched Suits', 'unstitched-suits'),
+   ((SELECT id FROM public.categories WHERE slug='clothing'), 'Stitched Suits', 'stitched-suits'),
+   ((SELECT id FROM public.categories WHERE slug='clothing'), '2-Piece Suits', '2-piece-suits'),
+   ((SELECT id FROM public.categories WHERE slug='clothing'), '3-Piece Suits', '3-piece-suits'),
+   ((SELECT id FROM public.categories WHERE slug='clothing'), 'Kurti / Tops', 'kurti-tops'),
+   ((SELECT id FROM public.categories WHERE slug='clothing'), 'Maxi Dresses', 'maxi-dresses'),
+   ((SELECT id FROM public.categories WHERE slug='clothing'), 'Abaya / Modest Wear', 'abaya-modest-wear'),
+   ((SELECT id FROM public.categories WHERE slug='clothing'), 'Western Wear', 'western-wear'),
+   ((SELECT id FROM public.categories WHERE slug='bottom-wear'), 'Trousers', 'trousers'),
+   ((SELECT id FROM public.categories WHERE slug='bottom-wear'), 'Palazzo', 'palazzo'),
+   ((SELECT id FROM public.categories WHERE slug='bottom-wear'), 'Jeans', 'jeans'),
+   ((SELECT id FROM public.categories WHERE slug='bottom-wear'), 'Skirts', 'skirts'),
+   ((SELECT id FROM public.categories WHERE slug='accessories'), 'Dupatta', 'dupatta'),
+   ((SELECT id FROM public.categories WHERE slug='accessories'), 'Scarves', 'scarves'),
+   ((SELECT id FROM public.categories WHERE slug='accessories'), 'Handbags', 'handbags'),
+   ((SELECT id FROM public.categories WHERE slug='special'), 'New Arrivals', 'new-arrivals'),
+   ((SELECT id FROM public.categories WHERE slug='special'), 'Sale', 'sale')
+ON CONFLICT (category_id, name) DO NOTHING;
 
 -- ═══════════════════════════════════════════════════════════════════
 -- 2. SEED PRODUCTS
 -- ═══════════════════════════════════════════════════════════════════
 
-INSERT INTO public.products (title, price, old_price, image_url, category_id, stock, description, sizes, colors, fabric, season) VALUES
+INSERT INTO public.products (title, slug, description, category_id, subcategory_id, price, discount_price, old_price, image_url, images, sizes, colors, stock, fabric, work, pieces, includes, care_instructions, is_new_arrival, is_on_sale, season) VALUES
+('Embroidered Lawn Shalwar Kameez', 'embroidered-lawn-shalwar-kameez', 'Elegant 3-piece embroidered lawn suit perfect for summer wear.',
+ (SELECT id FROM public.categories WHERE slug='clothing'),
+ (SELECT id FROM public.subcategories WHERE slug='3-piece-suits'),
+ 4500, 3999, 4500,
+ 'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=800',
+ ARRAY['https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=800','https://images.unsplash.com/photo-1464863979621-258859e62245?w=800'],
+ ARRAY['S','M','L','XL'], ARRAY['Sky Blue'], 25, 'Lawn', 'Embroidery', 3,
+ ARRAY['Shirt','Shalwar','Dupatta'], 'Hand wash only. Do not bleach.', true, false, 'Summer'),
 
--- Women's Products
-('Premium Silk Dress', 95.00, 120.00, 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=500', (SELECT id FROM public.categories WHERE name='Women'), 25, 'High-quality luxury silk dress for elegant occasions.', ARRAY['XS', 'S', 'M', 'L', 'XL'], ARRAY['Black', 'Navy', 'Cream'], 'Silk', 'Summer'),
-('Modern Abaya', 80.00, 100.00, 'https://images.unsplash.com/photo-1581044777550-4cfa60707c03?w=500', (SELECT id FROM public.categories WHERE name='Women'), 30, 'Elegant and modern clothing for daily wear.', ARRAY['One Size', 'Plus'], ARRAY['Black', 'Charcoal'], 'Cotton Blend', 'All Season'),
-('Elegant Party Gown', 150.00, 200.00, 'https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=500', (SELECT id FROM public.categories WHERE name='Women'), 12, 'Exclusive gown designed for the perfect night out.', ARRAY['S', 'M', 'L', 'XL'], ARRAY['Red', 'Gold', 'Emerald'], 'Polyester', 'Winter'),
-('Casual T-Shirt', 25.00, 35.00, 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500', (SELECT id FROM public.categories WHERE name='Women'), 50, 'Comfortable cotton t-shirt for everyday wear.', ARRAY['XS', 'S', 'M', 'L', 'XL', 'XXL'], ARRAY['White', 'Black', 'Gray', 'Navy'], 'Cotton', 'Summer'),
-('Denim Jeans', 60.00, 80.00, 'https://images.unsplash.com/photo-1542272604-787c62d465d1?w=500', (SELECT id FROM public.categories WHERE name='Women'), 40, 'Premium denim jeans with perfect fit.', ARRAY['XS', 'S', 'M', 'L', 'XL'], ARRAY['Light Blue', 'Dark Blue', 'Black'], 'Denim', 'All Season'),
+('Digital Printed 2-Piece Suit', 'digital-printed-2-piece-suit', 'Modern printed 2-piece outfit for casual day wear.',
+ (SELECT id FROM public.categories WHERE slug='clothing'),
+ (SELECT id FROM public.subcategories WHERE slug='2-piece-suits'),
+ 3200, 2899, 3200,
+ 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800',
+ ARRAY['https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800'],
+ ARRAY['S','M','L'], ARRAY['Lavender','Peach'], 32, 'Cambric', 'Digital Print', 2,
+ ARRAY['Shirt','Trouser'], 'Machine wash cold.', true, false, 'Summer'),
 
--- Men's Products
-('Men Cotton Shirt', 50.00, 70.00, 'https://images.unsplash.com/photo-1596362051768-e60b8fba9308?w=500', (SELECT id FROM public.categories WHERE name='Men'), 35, 'Classic cotton shirt for professional look.', ARRAY['S', 'M', 'L', 'XL', 'XXL'], ARRAY['White', 'Light Blue', 'Navy'], 'Cotton', 'All Season'),
-('Formal Blazer', 120.00, 160.00, 'https://images.unsplash.com/photo-1591047990635-58e6b1396a4b?w=500', (SELECT id FROM public.categories WHERE name='Men'), 15, 'Premium formal blazer for business occasions.', ARRAY['S', 'M', 'L', 'XL'], ARRAY['Black', 'Navy', 'Gray'], 'Wool Blend', 'Winter'),
+('Straight Fit Trouser', 'straight-fit-trouser', 'Comfortable straight-fit trouser in soft cotton.',
+ (SELECT id FROM public.categories WHERE slug='bottom-wear'),
+ (SELECT id FROM public.subcategories WHERE slug='trousers'),
+ 1500, 1299, 1500,
+ 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800',
+ ARRAY['https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800'],
+ ARRAY['S','M','L','XL'], ARRAY['Black','Beige'], 40, 'Cotton', 'Plain', 1,
+ ARRAY['Trouser'], 'Wash dark colors separately.', false, false, 'All Season'),
 
--- Accessories
-('Premium Leather Handbag', 120.00, 160.00, 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=500', (SELECT id FROM public.categories WHERE name='Accessories'), 18, 'Genuine leather handbag with modern design.', ARRAY['One Size'], ARRAY['Black', 'Brown', 'Tan'], 'Leather', 'All Season'),
-('Designer Sunglasses', 85.00, 120.00, 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=500', (SELECT id FROM public.categories WHERE name='Accessories'), 45, 'Trendy designer sunglasses with UV protection.', ARRAY['One Size'], ARRAY['Black', 'Gold', 'Rose Gold'], 'Plastic & Metal', 'Summer'),
-('Silk Scarf', 35.00, 50.00, 'https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=500', (SELECT id FROM public.categories WHERE name='Accessories'), 60, 'Luxurious silk scarf perfect for any occasion.', ARRAY['One Size'], ARRAY['Blue', 'Pink', 'Purple', 'Multicolor'], 'Silk', 'All Season'),
-
--- Footwear
-('Leather Loafers', 95.00, 130.00, 'https://images.unsplash.com/photo-1608256543803-ba4f8c70ae0b?w=500', (SELECT id FROM public.categories WHERE name='Footwear'), 28, 'Comfortable leather loafers for professional wear.', ARRAY['6', '7', '8', '9', '10', '11'], ARRAY['Black', 'Brown', 'Tan'], 'Leather', 'All Season'),
-('Casual Sneakers', 65.00, 90.00, 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500', (SELECT id FROM public.categories WHERE name='Footwear'), 35, 'Stylish and comfortable sneakers for daily wear.', ARRAY['5', '6', '7', '8', '9', '10', '11'], ARRAY['White', 'Black', 'Gray', 'Navy'], 'Canvas & Rubber', 'Summer'),
-('High Heels', 110.00, 150.00, 'https://images.unsplash.com/photo-1543163521-3bf539c5dd9b?w=500', (SELECT id FROM public.categories WHERE name='Footwear'), 22, 'Elegant high heels for special occasions.', ARRAY['5', '6', '7', '8', '9', '10'], ARRAY['Black', 'Red', 'Gold', 'Silver'], 'Satin & Leather', 'Winter')
+('Chiffon Dupatta', 'chiffon-dupatta', 'Lightweight chiffon dupatta with lace border.',
+ (SELECT id FROM public.categories WHERE slug='accessories'),
+ (SELECT id FROM public.subcategories WHERE slug='dupatta'),
+ 1800, 1499, 1800,
+ 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800',
+ ARRAY['https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800'],
+ ARRAY['Free Size'], ARRAY['Maroon','Off White'], 55, 'Chiffon', 'Lace Work', 1,
+ ARRAY['Dupatta'], 'Dry clean recommended.', false, true, 'All Season')
 
 ON CONFLICT DO NOTHING;
 

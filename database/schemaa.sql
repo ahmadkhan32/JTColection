@@ -16,22 +16,44 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS categories (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL UNIQUE,
+  slug text UNIQUE,
+  description text,
   image_url text,
   created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS subcategories (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  category_id uuid NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+  name text NOT NULL,
+  slug text,
+  description text,
+  created_at timestamptz DEFAULT now(),
+  UNIQUE(category_id, name)
 );
 
 CREATE TABLE IF NOT EXISTS products (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   title text NOT NULL,
+  slug text UNIQUE,
   description text,
   price numeric NOT NULL DEFAULT 0,
+  discount_price numeric,
   old_price numeric,
   stock int NOT NULL DEFAULT 0,
   image_url text,
+  images text[] DEFAULT '{}',
   category_id uuid REFERENCES categories(id) ON DELETE SET NULL,
+  subcategory_id uuid REFERENCES subcategories(id) ON DELETE SET NULL,
   sizes text[] DEFAULT '{}',
   colors text[] DEFAULT '{}',
   fabric text,
+  work text,
+  pieces int DEFAULT 1,
+  includes text[] DEFAULT '{}',
+  care_instructions text,
+  is_new_arrival boolean DEFAULT false,
+  is_on_sale boolean DEFAULT false,
   season text,
   created_at timestamptz DEFAULT now()
 );
@@ -109,13 +131,35 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS email text;
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS postal_code text DEFAULT '';
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_method text DEFAULT 'COD';
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status text DEFAULT 'pending';
+ALTER TABLE categories ADD COLUMN IF NOT EXISTS slug text UNIQUE;
+ALTER TABLE categories ADD COLUMN IF NOT EXISTS description text;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS slug text UNIQUE;
 ALTER TABLE products ADD COLUMN IF NOT EXISTS fabric text;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS work text;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS pieces int DEFAULT 1;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS includes text[] DEFAULT '{}';
+ALTER TABLE products ADD COLUMN IF NOT EXISTS care_instructions text;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS is_new_arrival boolean DEFAULT false;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS is_on_sale boolean DEFAULT false;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS discount_price numeric;
 ALTER TABLE products ADD COLUMN IF NOT EXISTS season text;
 ALTER TABLE products ADD COLUMN IF NOT EXISTS sizes text[] DEFAULT '{}';
 ALTER TABLE products ADD COLUMN IF NOT EXISTS colors text[] DEFAULT '{}';
+ALTER TABLE products ADD COLUMN IF NOT EXISTS images text[] DEFAULT '{}';
 ALTER TABLE order_items ADD COLUMN IF NOT EXISTS variation_id uuid REFERENCES product_variations(id) ON DELETE SET NULL;
 ALTER TABLE cart ADD COLUMN IF NOT EXISTS selected_size text;
 ALTER TABLE cart ADD COLUMN IF NOT EXISTS selected_color text;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_name = 'products' AND column_name = 'subcategory_id'
+  ) THEN
+    ALTER TABLE products ADD COLUMN subcategory_id uuid REFERENCES subcategories(id) ON DELETE SET NULL;
+  END IF;
+END $$;
 
 -- Safe rename 'total' → 'total_amount' if old schema
 DO $$
@@ -129,19 +173,32 @@ ALTER TABLE orders ALTER COLUMN total_amount TYPE numeric USING total_amount::nu
 
 -- ── 4. SEED SRS CATEGORIES (11 categories, skip if exists) ───────────────
 
-INSERT INTO categories (name) VALUES
-  ('Unstitched'),
-  ('2 Piece'),
-  ('3 Piece'),
-  ('Kurtis'),
-  ('Maxi'),
-  ('Abaya'),
-  ('Western Wear'),
-  ('Trousers'),
-  ('Dupatta'),
-  ('New Arrivals'),
-  ('Sale')
-ON CONFLICT (name) DO NOTHING;
+INSERT INTO categories (name, slug, description) VALUES
+  ('Clothing', 'clothing', 'Women clothing collections for stitched and unstitched outfits'),
+  ('Bottom Wear', 'bottom-wear', 'Trousers, palazzo, jeans and skirts for women'),
+  ('Accessories', 'accessories', 'Dupatta, scarves and handbags for complete look'),
+  ('Special', 'special', 'Trending edits including new arrivals and sale')
+ON CONFLICT (name) DO UPDATE SET slug = EXCLUDED.slug;
+
+INSERT INTO subcategories (category_id, name, slug) VALUES
+  ((SELECT id FROM categories WHERE slug = 'clothing'), 'Unstitched Suits', 'unstitched-suits'),
+  ((SELECT id FROM categories WHERE slug = 'clothing'), 'Stitched Suits', 'stitched-suits'),
+  ((SELECT id FROM categories WHERE slug = 'clothing'), '2-Piece Suits', '2-piece-suits'),
+  ((SELECT id FROM categories WHERE slug = 'clothing'), '3-Piece Suits', '3-piece-suits'),
+  ((SELECT id FROM categories WHERE slug = 'clothing'), 'Kurti / Tops', 'kurti-tops'),
+  ((SELECT id FROM categories WHERE slug = 'clothing'), 'Maxi Dresses', 'maxi-dresses'),
+  ((SELECT id FROM categories WHERE slug = 'clothing'), 'Abaya / Modest Wear', 'abaya-modest-wear'),
+  ((SELECT id FROM categories WHERE slug = 'clothing'), 'Western Wear', 'western-wear'),
+  ((SELECT id FROM categories WHERE slug = 'bottom-wear'), 'Trousers', 'trousers'),
+  ((SELECT id FROM categories WHERE slug = 'bottom-wear'), 'Palazzo', 'palazzo'),
+  ((SELECT id FROM categories WHERE slug = 'bottom-wear'), 'Jeans', 'jeans'),
+  ((SELECT id FROM categories WHERE slug = 'bottom-wear'), 'Skirts', 'skirts'),
+  ((SELECT id FROM categories WHERE slug = 'accessories'), 'Dupatta', 'dupatta'),
+  ((SELECT id FROM categories WHERE slug = 'accessories'), 'Scarves', 'scarves'),
+  ((SELECT id FROM categories WHERE slug = 'accessories'), 'Handbags', 'handbags'),
+  ((SELECT id FROM categories WHERE slug = 'special'), 'New Arrivals', 'new-arrivals'),
+  ((SELECT id FROM categories WHERE slug = 'special'), 'Sale', 'sale')
+ON CONFLICT (category_id, name) DO NOTHING;
 
 -- ── 5. ROW LEVEL SECURITY ─────────────────────────────────────────────────
 
