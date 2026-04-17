@@ -55,7 +55,8 @@ CREATE TABLE IF NOT EXISTS products (
   is_new_arrival boolean DEFAULT false,
   is_on_sale boolean DEFAULT false,
   season text,
-  created_at timestamptz DEFAULT now()
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
 );
 
 -- ── 2. SRS CORE TABLES (NEW) ──────────────────────────────────────────────

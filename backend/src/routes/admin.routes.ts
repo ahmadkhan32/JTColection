@@ -2,6 +2,7 @@ import express from 'express';
 import {
   getAllOrders,
   updateOrderStatus,
+  deleteOrder,
   adminGetProducts,
   adminCreateProduct,
   adminUpdateProduct,
@@ -16,6 +17,7 @@ import {
   adminDeleteSubcategory,
   adminGetUsers,
   adminGetAnalytics,
+  adminGetDashboard,
 } from '../controllers/admin.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { isAdmin } from '../middlewares/admin.middleware.js';
@@ -25,12 +27,15 @@ const router = express.Router();
 // All admin routes require auth + admin role
 router.use(authMiddleware, isAdmin);
 
-// Dashboard analytics
+// Dashboard (analytics + user roster)
+// Router is mounted at /api/admin — so this resolves to GET /api/admin/dashboard
+router.get('/dashboard', adminGetDashboard);
 router.get('/analytics', adminGetAnalytics);
 
 // Orders
 router.get('/orders', getAllOrders);
 router.put('/orders/:id', updateOrderStatus);
+router.delete('/orders/:id', deleteOrder);
 
 // Products
 router.get('/products', adminGetProducts);

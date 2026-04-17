@@ -50,13 +50,31 @@ export interface UpdateProductInput {
   is_on_sale?: boolean;
 }
 
+/** Convert a string to a URL-safe slug, e.g. "My Product!" → "my-product" */
+function toSlug(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')   // strip non-word chars
+    .replace(/[\s_-]+/g, '-')   // spaces/underscores → hyphens
+    .replace(/^-+|-+$/g, '');   // trim leading/trailing hyphens
+}
+
+/** Generate a slug that is guaranteed unique by appending a short timestamp suffix. */
+function uniqueSlug(title: string): string {
+  return `${toSlug(title)}-${Date.now().toString(36)}`;
+}
+
 export class ProductService {
   async createProduct(input: CreateProductInput) {
+    // Auto-generate a unique slug if none supplied
+    const slug = input.slug ? input.slug : uniqueSlug(input.title);
+
     const { data, error } = await supabase
       .from('products')
       .insert({
         title: input.title,
-        slug: input.slug,
+        slug,
         description: input.description,
         price: input.price,
         old_price: input.old_price,
@@ -186,6 +204,7 @@ export class ProductService {
         ...(input.care_instructions !== undefined && { care_instructions: input.care_instructions }),
         ...(input.is_new_arrival !== undefined && { is_new_arrival: input.is_new_arrival }),
         ...(input.is_on_sale !== undefined && { is_on_sale: input.is_on_sale }),
+        updated_at: new Date().toISOString(),
       })
       .eq('id', input.id)
       .select()
