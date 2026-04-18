@@ -113,7 +113,8 @@ CREATE TABLE IF NOT EXISTS order_items (
   product_id uuid REFERENCES products(id) ON DELETE SET NULL,
   variation_id uuid REFERENCES product_variations(id) ON DELETE SET NULL,
   quantity int NOT NULL,
-  price numeric NOT NULL,
+  price numeric NOT NULL DEFAULT 0,
+  price_at_purchase numeric NOT NULL DEFAULT 0,
   size text,
   color text,
   created_at timestamptz DEFAULT now()

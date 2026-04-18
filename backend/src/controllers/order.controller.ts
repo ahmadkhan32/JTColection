@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { supabaseAdmin as supabase } from '../config/supabaseClient.js';
+import { generateInvoicePDF } from '../services/invoice.service.js';
+import { sendOrderConfirmationEmail } from '../services/email.service.js';
 
 export const createOrder = async (req: Request, res: Response) => {
   const {
@@ -16,6 +18,7 @@ export const createOrder = async (req: Request, res: Response) => {
     payment_method,
     status,
     userId,
+    currency,
   } = req.body;
   const resolvedUserId = req.user?.id || (userId && /^[0-9a-f-]{36}$/.test(userId) ? userId : null);
 
@@ -24,7 +27,7 @@ export const createOrder = async (req: Request, res: Response) => {
     const normalizedPaymentMethod = paymentMethod || payment_method || 'COD';
     const normalizedStatus = status || 'pending';
 
-    const { data: order } = await supabase
+    const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert([
         {
@@ -38,10 +41,16 @@ export const createOrder = async (req: Request, res: Response) => {
           phone,
           payment_method: normalizedPaymentMethod,
           status: normalizedStatus,
+          currency: currency || 'PKR',
         }
       ])
       .select()
       .single();
+
+    if (orderError || !order) {
+      console.error('[createOrder] orders insert failed:', orderError?.message, orderError?.code);
+      return res.status(500).json({ error: 'Order creation failed', details: orderError?.message || 'No data returned' });
+    }
 
     const orderItems = items.map((item: any) => ({
       order_id: order.id,
@@ -89,6 +98,18 @@ export const createOrder = async (req: Request, res: Response) => {
           await supabase.from('products').update({ stock: newStock }).eq('id', pid);
         }
       }
+    }
+
+    // Fire-and-forget: generate PDF invoice + send confirmation email
+    if (order?.email) {
+      const itemsForInvoice = items.map((item: any) => ({
+        products: { title: item.title || item.name || item.product_name || 'Product' },
+        quantity: item.quantity,
+        price_at_purchase: item.price,
+      }));
+      generateInvoicePDF({ ...order }, itemsForInvoice)
+        .then(pdf => sendOrderConfirmationEmail({ ...order }, pdf))
+        .catch((e: any) => console.warn('[Order] Email/invoice error:', e?.message));
     }
 
     res.json({ success: true, id: order.id, order });
@@ -140,5 +161,68 @@ export const getUserOrders = async (req: Request, res: Response) => {
     return res.json({ success: true, orders: data || [] });
   } catch (err) {
     return res.status(500).json({ message: 'Failed to fetch user orders' });
+  }
+};
+
+// PUT /api/orders/:id — customer edits address/phone (only if pending/confirmed)
+export const updateOrder = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { address, phone, city, postal_code } = req.body;
+  const userId = req.user?.id;
+
+  try {
+    const { data: existing, error: fetchError } = await supabase
+      .from('orders').select('id, status, user_id').eq('id', id).single();
+
+    if (fetchError || !existing) return res.status(404).json({ error: 'Order not found' });
+
+    if (!['pending', 'confirmed'].includes(existing.status)) {
+      return res.status(403).json({ error: `Cannot edit order with status "${existing.status}"` });
+    }
+    if (userId && existing.user_id && existing.user_id !== userId) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    const updates: Record<string, string> = {};
+    if (address)     updates.address     = address;
+    if (phone)       updates.phone       = phone;
+    if (city)        updates.city        = city;
+    if (postal_code) updates.postal_code = postal_code;
+
+    const { data, error } = await supabase
+      .from('orders').update(updates).eq('id', id).select().single();
+
+    if (error) return res.status(500).json({ error: error.message });
+    return res.json({ success: true, order: data });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Update failed' });
+  }
+};
+
+// DELETE /api/orders/:id — customer cancels order (sets status = cancelled)
+export const cancelOrder = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const userId = req.user?.id;
+
+  try {
+    const { data: existing, error: fetchError } = await supabase
+      .from('orders').select('id, status, user_id').eq('id', id).single();
+
+    if (fetchError || !existing) return res.status(404).json({ error: 'Order not found' });
+
+    if (!['pending', 'confirmed'].includes(existing.status)) {
+      return res.status(403).json({ error: `Cannot cancel order with status "${existing.status}"` });
+    }
+    if (userId && existing.user_id && existing.user_id !== userId) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    const { data, error } = await supabase
+      .from('orders').update({ status: 'cancelled' }).eq('id', id).select().single();
+
+    if (error) return res.status(500).json({ error: error.message });
+    return res.json({ success: true, order: data });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Cancel failed' });
   }
 };

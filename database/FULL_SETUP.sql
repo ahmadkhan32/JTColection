@@ -20,6 +20,7 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status text DEFAULT 'pending
 
 -- Core columns that may be missing on older installs
 ALTER TABLE order_items ADD COLUMN IF NOT EXISTS price numeric NOT NULL DEFAULT 0;
+ALTER TABLE order_items ADD COLUMN IF NOT EXISTS price_at_purchase numeric NOT NULL DEFAULT 0;
 ALTER TABLE order_items ADD COLUMN IF NOT EXISTS size  text;
 ALTER TABLE order_items ADD COLUMN IF NOT EXISTS color text;
 ALTER TABLE order_items ADD COLUMN IF NOT EXISTS variation_id uuid
