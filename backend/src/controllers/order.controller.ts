@@ -27,25 +27,36 @@ export const createOrder = async (req: Request, res: Response) => {
     const normalizedPaymentMethod = paymentMethod || payment_method || 'COD';
     const normalizedStatus = status || 'pending';
 
-    const { data: order, error: orderError } = await supabase
+    const baseInsertData: Record<string, any> = {
+      user_id: resolvedUserId,
+      total_amount: normalizedTotal,
+      address,
+      city,
+      postal_code,
+      customer_name,
+      email,
+      phone,
+      payment_method: normalizedPaymentMethod,
+      status: normalizedStatus,
+      currency: currency || 'PKR',
+    };
+
+    let { data: order, error: orderError } = await supabase
       .from("orders")
-      .insert([
-        {
-          user_id: resolvedUserId,
-          total_amount: normalizedTotal,
-          address,
-          city,
-          postal_code,
-          customer_name,
-          email,
-          phone,
-          payment_method: normalizedPaymentMethod,
-          status: normalizedStatus,
-          currency: currency || 'PKR',
-        }
-      ])
+      .insert([baseInsertData])
       .select()
       .single();
+
+    // Fallback: if currency column doesn't exist yet (migration not run), retry without it
+    if (orderError && (orderError.code === 'PGRST204' || (orderError.message || '').includes("'currency'"))) {
+      console.warn('[createOrder] currency column missing — retrying without it (run CURRENCY_INVOICE_MIGRATION.sql)');
+      const { currency: _c, ...fallbackData } = baseInsertData;
+      ({ data: order, error: orderError } = await supabase
+        .from("orders")
+        .insert([fallbackData])
+        .select()
+        .single());
+    }
 
     if (orderError || !order) {
       console.error('[createOrder] orders insert failed:', orderError?.message, orderError?.code);
