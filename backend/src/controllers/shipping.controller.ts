@@ -1,6 +1,13 @@
 import { Request, Response } from 'express';
 import { supabaseAdmin } from '../config/supabaseClient.js';
 
+/** True when the error means the table doesn't exist yet */
+const isMissingTable = (err: { code?: string; message?: string }) =>
+  err?.code === '42P01' ||
+  err?.code === 'PGRST200' ||
+  (err?.message ?? '').toLowerCase().includes('relation') ||
+  (err?.message ?? '').toLowerCase().includes('does not exist');
+
 // ── GET ALL (Admin) ──────────────────────────────────────────────────────────
 export const getAllShipping = async (req: Request, res: Response) => {
   const { data, error } = await supabaseAdmin
@@ -8,7 +15,12 @@ export const getAllShipping = async (req: Request, res: Response) => {
     .select('*')
     .order('created_at', { ascending: false });
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) {
+    if (isMissingTable(error)) {
+      return res.json({ data: [], setupRequired: true, message: 'shipping table not yet created — run the SQL migration in Supabase.' });
+    }
+    return res.status(500).json({ error: error.message });
+  }
   res.json({ data });
 };
 
@@ -21,7 +33,10 @@ export const getShippingByOrder = async (req: Request, res: Response) => {
     .eq('order_id', orderId)
     .maybeSingle();
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) {
+    if (isMissingTable(error)) return res.json({ data: null });
+    return res.status(500).json({ error: error.message });
+  }
   res.json({ data });
 };
 
@@ -34,7 +49,10 @@ export const getShippingByUser = async (req: Request, res: Response) => {
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) {
+    if (isMissingTable(error)) return res.json({ data: [] });
+    return res.status(500).json({ error: error.message });
+  }
   res.json({ data });
 };
 
