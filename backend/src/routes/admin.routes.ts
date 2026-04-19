@@ -18,6 +18,7 @@ import {
   adminGetUsers,
   adminGetAnalytics,
   adminGetDashboard,
+  adminGetUploadUrl,
 } from '../controllers/admin.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { isAdmin } from '../middlewares/admin.middleware.js';
@@ -57,5 +58,8 @@ router.delete('/subcategories/:id', adminDeleteSubcategory);
 
 // Users
 router.get('/users', adminGetUsers);
+
+// Upload: generate a signed URL for direct-to-Supabase uploads
+router.post('/upload-url', adminGetUploadUrl);
 
 export default router;

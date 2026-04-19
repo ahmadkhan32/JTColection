@@ -109,21 +109,39 @@ export const adminCreateProduct = async (req: Request, res: Response) => {
   const baseTitle = body.slug || body.title || 'product';
   body.slug = buildUniqueSlug(baseTitle);
 
+  // Sanitize UUID fields — empty string is not a valid UUID and fails FK constraints
+  if (!body.category_id) body.category_id = null;
+  if (!body.subcategory_id) body.subcategory_id = null;
+  // Ensure numeric fields are proper numbers, not empty strings
+  if (body.discount_price === '' || body.discount_price === 0) body.discount_price = null;
+  if (body.old_price === '' || body.old_price === 0) body.old_price = null;
+
   const { data, error } = await supabase
     .from('products')
     .insert(body)
     .select()
     .single();
 
-  if (error) return res.status(400).json({ error: error.message });
+  if (error) {
+    console.error('[adminCreateProduct] Supabase error:', error.message, error.details, error.hint);
+    return res.status(400).json({ error: error.message, details: error.details, hint: error.hint });
+  }
   res.status(201).json({ success: true, product: data });
 };
 
 export const adminUpdateProduct = async (req: Request, res: Response) => {
   const { id } = req.params;
+  const body = { ...req.body };
+
+  // Sanitize UUID fields — empty string fails FK constraints
+  if (!body.category_id) body.category_id = null;
+  if (!body.subcategory_id) body.subcategory_id = null;
+  if (body.discount_price === '' || body.discount_price === 0) body.discount_price = null;
+  if (body.old_price === '' || body.old_price === 0) body.old_price = null;
+
   const { data, error } = await supabase
     .from('products')
-    .update({ ...req.body, updated_at: new Date().toISOString() })
+    .update({ ...body, updated_at: new Date().toISOString() })
     .eq('id', id)
     .select()
     .single();
@@ -458,5 +476,34 @@ export const adminGetDashboard = async (req: Request, res: Response) => {
       recentOrders: [],
       users: [],
     });
+  }
+};
+
+// ── Upload: generate a signed upload URL ─────────────────────────────────────
+export const adminGetUploadUrl = async (req: Request, res: Response) => {
+  try {
+    const { path: filePath, contentType } = req.body as { path?: string; contentType?: string };
+    if (!filePath) {
+      res.status(400).json({ error: 'path is required' });
+      return;
+    }
+
+    const { data, error } = await supabase.storage
+      .from('IMAGES')
+      .createSignedUploadUrl(filePath);
+
+    if (error) {
+      res.status(500).json({ error: error.message });
+      return;
+    }
+
+    // Build the public URL for reading after upload
+    const { data: { publicUrl } } = supabase.storage
+      .from('IMAGES')
+      .getPublicUrl(filePath);
+
+    res.json({ signedUrl: data.signedUrl, token: data.token, publicUrl });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to generate upload URL' });
   }
 };
