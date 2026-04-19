@@ -103,6 +103,23 @@ function buildUniqueSlug(title: string): string {
   return `${base}-${Date.now().toString(36)}`;
 }
 
+// ── Helper: sync product_images table with the images[] array on a product ─
+async function syncProductImages(productId: string, images: string[]): Promise<void> {
+  // Remove all existing rows for this product, then re-insert in order.
+  await supabase.from('product_images').delete().eq('product_id', productId);
+  if (images.length === 0) return;
+  const rows = images.map((url, idx) => ({ product_id: productId, image_url: url, sort_order: idx }));
+  const { error } = await supabase.from('product_images').insert(rows);
+  if (error) console.error('[syncProductImages]', error.message);
+}
+
+// ── Helper: extract storage path from a Supabase public URL ──────────────────
+function extractStoragePath(publicUrl: string): string | null {
+  // e.g. https://xxx.supabase.co/storage/v1/object/public/IMAGES/products/file.jpg
+  const match = publicUrl.match(/\/storage\/v1\/object\/public\/IMAGES\/(.+)$/);
+  return match ? match[1] : null;
+}
+
 export const adminCreateProduct = async (req: Request, res: Response) => {
   const body = { ...req.body };
   // Always ensure a unique slug — use supplied value as prefix if present
@@ -116,6 +133,9 @@ export const adminCreateProduct = async (req: Request, res: Response) => {
   if (body.discount_price === '' || body.discount_price === 0) body.discount_price = null;
   if (body.old_price === '' || body.old_price === 0) body.old_price = null;
 
+  // Extract images before insert so we can sync separately
+  const images: string[] = Array.isArray(body.images) ? body.images.filter(Boolean) : [];
+
   const { data, error } = await supabase
     .from('products')
     .insert(body)
@@ -126,6 +146,10 @@ export const adminCreateProduct = async (req: Request, res: Response) => {
     console.error('[adminCreateProduct] Supabase error:', error.message, error.details, error.hint);
     return res.status(400).json({ error: error.message, details: error.details, hint: error.hint });
   }
+
+  // Sync product_images table
+  await syncProductImages(data.id, images);
+
   res.status(201).json({ success: true, product: data });
 };
 
@@ -139,6 +163,8 @@ export const adminUpdateProduct = async (req: Request, res: Response) => {
   if (body.discount_price === '' || body.discount_price === 0) body.discount_price = null;
   if (body.old_price === '' || body.old_price === 0) body.old_price = null;
 
+  const images: string[] = Array.isArray(body.images) ? body.images.filter(Boolean) : [];
+
   const { data, error } = await supabase
     .from('products')
     .update({ ...body, updated_at: new Date().toISOString() })
@@ -147,14 +173,46 @@ export const adminUpdateProduct = async (req: Request, res: Response) => {
     .single();
 
   if (error) return res.status(400).json({ error: error.message });
+
+  // Re-sync product_images table with the new images list
+  if (body.images !== undefined) {
+    await syncProductImages(id, images);
+  }
+
   res.json({ success: true, product: data });
 };
 
 export const adminDeleteProduct = async (req: Request, res: Response) => {
   const { id } = req.params;
+
+  // 1. Fetch the product's images before deleting so we can clean up Storage
+  const { data: product } = await supabase
+    .from('products')
+    .select('images, image_url')
+    .eq('id', id)
+    .single();
+
+  // 2. Delete from Supabase Storage (best-effort — don't fail if storage errors)
+  if (product) {
+    const allImages: string[] = [
+      ...(Array.isArray(product.images) ? product.images : []),
+      ...(product.image_url ? [product.image_url] : []),
+    ].filter(Boolean);
+
+    const storagePaths = [...new Set(allImages)]
+      .map(extractStoragePath)
+      .filter((p): p is string => p !== null);
+
+    if (storagePaths.length > 0) {
+      const { error: storageErr } = await supabase.storage.from('IMAGES').remove(storagePaths);
+      if (storageErr) console.warn('[adminDeleteProduct] storage cleanup:', storageErr.message);
+    }
+  }
+
+  // 3. Delete the product (CASCADE handles order_items, product_images, product_variations)
   const { error } = await supabase.from('products').delete().eq('id', id);
   if (error) return res.status(400).json({ error: error.message });
-  res.json({ success: true, message: 'Product deleted' });
+  res.json({ success: true, message: 'Product and its images deleted' });
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -505,5 +563,23 @@ export const adminGetUploadUrl = async (req: Request, res: Response) => {
     res.json({ signedUrl: data.signedUrl, token: data.token, publicUrl });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to generate upload URL' });
+  }
+};
+
+// ── Delete: remove a single image from Supabase Storage ──────────────────────
+export const adminDeleteImage = async (req: Request, res: Response) => {
+  try {
+    const { url } = req.body as { url?: string };
+    if (!url) return res.status(400).json({ error: 'url is required' });
+
+    const path = extractStoragePath(url);
+    if (!path) return res.status(400).json({ error: 'Could not parse storage path from URL' });
+
+    const { error } = await supabase.storage.from('IMAGES').remove([path]);
+    if (error) return res.status(500).json({ error: error.message });
+
+    res.json({ success: true, path });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to delete image' });
   }
 };

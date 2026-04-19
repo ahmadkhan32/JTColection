@@ -19,6 +19,7 @@ import {
   adminGetAnalytics,
   adminGetDashboard,
   adminGetUploadUrl,
+  adminDeleteImage,
 } from '../controllers/admin.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { isAdmin } from '../middlewares/admin.middleware.js';
@@ -61,5 +62,8 @@ router.get('/users', adminGetUsers);
 
 // Upload: generate a signed URL for direct-to-Supabase uploads
 router.post('/upload-url', adminGetUploadUrl);
+
+// Images: delete a single image from Supabase Storage
+router.delete('/images', adminDeleteImage);
 
 export default router;
