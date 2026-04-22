@@ -20,6 +20,12 @@ import {
   adminGetDashboard,
   adminGetUploadUrl,
   adminDeleteImage,
+  adminGetProductVariations,
+  adminCreateVariation,
+  adminUpdateVariation,
+  adminDeleteVariation,
+  adminGetEmailLogs,
+  adminRetryEmail,
 } from '../controllers/admin.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { isAdmin } from '../middlewares/admin.middleware.js';
@@ -65,5 +71,15 @@ router.post('/upload-url', adminGetUploadUrl);
 
 // Images: delete a single image from Supabase Storage
 router.delete('/images', adminDeleteImage);
+
+// Product Variations (admin CRUD)
+router.get('/products/:id/variations', adminGetProductVariations);
+router.post('/variations', adminCreateVariation);
+router.put('/variations/:id', adminUpdateVariation);
+router.delete('/variations/:id', adminDeleteVariation);
+
+// Email Logs
+router.get('/email-logs', adminGetEmailLogs);
+router.post('/email-logs/:id/retry', adminRetryEmail);
 
 export default router;

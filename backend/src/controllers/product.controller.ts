@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { asyncHandler, AppError } from '../utils/errorHandler.js';
 import { ProductService } from '../services/product.service.js';
+import { supabase } from '../config/supabaseClient.js';
 
 const productService = new ProductService();
 
@@ -95,4 +96,19 @@ export const getSubcategories = asyncHandler(async (req: Request, res: Response)
     success: true,
     subcategories,
   });
+});
+
+// GET /api/products/:id/variations — public, returns all variations for a product
+export const getProductVariations = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const { data, error } = await supabase
+    .from('product_variations')
+    .select('id, product_id, color, size, stock, price_adjustment, image_url')
+    .eq('product_id', id)
+    .order('color');
+
+  if (error) throw new AppError(500, error.message);
+
+  res.json({ success: true, variations: data || [] });
 });

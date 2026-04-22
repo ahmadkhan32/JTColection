@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 // Use the service-role client for ALL admin operations so RLS never blocks writes or joins.
 import { supabaseAdmin as supabase } from '../config/supabaseClient.js';
+import { sendOrderStatusEmail } from '../services/email.service.js';
 
 // ── Orders ───────────────────────────────────────────────────────────────────
 
@@ -57,6 +58,14 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
       .single();
 
     if (error) return res.status(500).json({ error: error.message });
+
+    // Fire-and-forget status update email — never blocks the API response
+    if (data?.email) {
+      sendOrderStatusEmail(data).catch((e: any) =>
+        console.warn('[AdminController] Status email error:', e?.message)
+      );
+    }
+
     res.json({ success: true, order: data });
   } catch (err: any) {
     if (err?.cause?.code === 'ENOTFOUND' || err?.message?.includes('fetch')) {
@@ -582,4 +591,141 @@ export const adminDeleteImage = async (req: Request, res: Response) => {
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to delete image' });
   }
+};
+
+// ── Product Variations CRUD ───────────────────────────────────────────────────
+
+// GET /api/admin/products/:id/variations
+export const adminGetProductVariations = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { data, error } = await supabase
+    .from('product_variations')
+    .select('*')
+    .eq('product_id', id)
+    .order('color');
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ success: true, variations: data || [] });
+};
+
+// POST /api/admin/variations
+// Body: { product_id, color, size, stock, price_adjustment, image_url? }
+export const adminCreateVariation = async (req: Request, res: Response) => {
+  const { product_id, color, size, stock = 0, price_adjustment = 0, image_url } = req.body;
+  if (!product_id) return res.status(400).json({ error: 'product_id is required' });
+  if (!color)      return res.status(400).json({ error: 'color is required' });
+  if (!size)       return res.status(400).json({ error: 'size is required' });
+
+  const { data, error } = await supabase
+    .from('product_variations')
+    .insert({ product_id, color, size, stock, price_adjustment, image_url: image_url || null })
+    .select()
+    .single();
+
+  if (error) return res.status(400).json({ error: error.message });
+  res.status(201).json({ success: true, variation: data });
+};
+
+// PUT /api/admin/variations/:id
+// Body: { color?, size?, stock?, price_adjustment?, image_url? }
+export const adminUpdateVariation = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { color, size, stock, price_adjustment, image_url } = req.body;
+
+  const updates: Record<string, unknown> = {};
+  if (color            !== undefined) updates.color            = color;
+  if (size             !== undefined) updates.size             = size;
+  if (stock            !== undefined) updates.stock            = stock;
+  if (price_adjustment !== undefined) updates.price_adjustment = price_adjustment;
+  if (image_url        !== undefined) updates.image_url        = image_url || null;
+
+  if (Object.keys(updates).length === 0) {
+    return res.status(400).json({ error: 'No fields to update' });
+  }
+
+  const { data, error } = await supabase
+    .from('product_variations')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) return res.status(400).json({ error: error.message });
+  res.json({ success: true, variation: data });
+};
+
+// DELETE /api/admin/variations/:id
+export const adminDeleteVariation = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { error } = await supabase.from('product_variations').delete().eq('id', id);
+  if (error) return res.status(400).json({ error: error.message });
+  res.json({ success: true, message: 'Variation deleted' });
+};
+
+// ── Email Logs ────────────────────────────────────────────────────────────────
+
+export const adminGetEmailLogs = async (req: Request, res: Response) => {
+  const { status, type, order_id, page = '1', limit = '50' } = req.query as Record<string, string>;
+
+  const pageNum  = Math.max(1, parseInt(page) || 1);
+  const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 50));
+  const offset   = (pageNum - 1) * limitNum;
+
+  let q = supabase
+    .from('email_logs')
+    .select('*', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limitNum - 1);
+
+  if (status && status !== 'all') q = q.eq('status', status);
+  if (type   && type   !== 'all') q = q.eq('type',   type);
+  if (order_id)                   q = q.eq('order_id', order_id);
+
+  const { data, error, count } = await q;
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ logs: data || [], total: count ?? 0, page: pageNum, limit: limitNum });
+};
+
+export const adminRetryEmail = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  // Fetch the log entry to find the original order
+  const { data: log, error: logErr } = await supabase
+    .from('email_logs')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (logErr || !log) return res.status(404).json({ error: 'Log entry not found' });
+  if (log.status === 'sent') return res.status(400).json({ error: 'Email already sent successfully' });
+
+  // Fetch the order
+  const { data: order, error: orderErr } = await supabase
+    .from('orders')
+    .select('*, order_items(quantity, price_at_purchase, size, color, products(title))')
+    .eq('id', log.order_id)
+    .single();
+
+  if (orderErr || !order) return res.status(404).json({ error: 'Order not found' });
+
+  // Re-send based on email type
+  if (log.type === 'status_update') {
+    sendOrderStatusEmail(order).catch((e: any) =>
+      console.warn('[AdminRetry] Status email error:', e?.message)
+    );
+  } else {
+    // For order_confirmation, we need to regenerate the invoice
+    const { generateInvoicePDF } = await import('../services/invoice.service.js');
+    const { sendOrderConfirmationEmail } = await import('../services/email.service.js');
+    const itemsForInvoice = (order.order_items || []).map((item: any) => ({
+      products: { title: item.products?.title || 'Product' },
+      quantity: item.quantity,
+      price_at_purchase: item.price_at_purchase,
+    }));
+    generateInvoicePDF(order, itemsForInvoice)
+      .then(pdf => sendOrderConfirmationEmail(order, pdf))
+      .catch((e: any) => console.warn('[AdminRetry] Confirmation email error:', e?.message));
+  }
+
+  res.json({ success: true, message: 'Email retry triggered' });
 };

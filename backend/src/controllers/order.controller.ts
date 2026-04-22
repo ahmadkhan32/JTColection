@@ -113,13 +113,17 @@ export const createOrder = async (req: Request, res: Response) => {
 
     // Fire-and-forget: generate PDF invoice + send confirmation email
     if (order?.email) {
-      const itemsForInvoice = items.map((item: any) => ({
-        products: { title: item.title || item.name || item.product_name || 'Product' },
-        quantity: item.quantity,
-        price_at_purchase: item.price,
+      const itemsForEmail = items.map((item: any) => ({
+        products:           { title: item.title || item.name || item.product_name || 'Product' },
+        quantity:           item.quantity,
+        price_at_purchase:  item.price,
+        price:              item.price,
+        size:               item.size,
+        color:              item.color,
       }));
-      generateInvoicePDF({ ...order }, itemsForInvoice)
-        .then(pdf => sendOrderConfirmationEmail({ ...order }, pdf))
+      const orderWithItems = { ...order, order_items: itemsForEmail };
+      generateInvoicePDF(orderWithItems, itemsForEmail)
+        .then(pdf => sendOrderConfirmationEmail(orderWithItems, pdf))
         .catch((e: any) => console.warn('[Order] Email/invoice error:', e?.message));
     }
 
