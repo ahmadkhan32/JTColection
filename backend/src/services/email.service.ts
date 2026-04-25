@@ -1,5 +1,6 @@
 import { supabaseAdmin as supabase } from '../config/supabaseClient.js';
 import { isSmtpConfigured, getTransporter } from '../config/smtp.js';
+import { getEnv } from '../config/env.js';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface OrderItem {
@@ -25,6 +26,11 @@ interface EmailOrder {
   order_items?:     OrderItem[];
 }
 
+function sanitizeEmail(value?: string): string | undefined {
+  const normalized = value?.trim().replace(/\s+/g, '');
+  return normalized || undefined;
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 /** Write a row to email_logs (best-effort — never throws). */
@@ -37,10 +43,11 @@ async function logEmail(
   attempts = 1
 ): Promise<void> {
   try {
+    const email = sanitizeEmail(order.email);
     await supabase.from('email_logs').insert({
       order_id:  order.id,
       user_id:   order.user_id ?? null,
-      email:     order.email ?? '',
+      email:     email ?? '',
       type,
       subject,
       status,
@@ -92,7 +99,8 @@ export const sendOrderConfirmationEmail = async (order: EmailOrder, pdfBuffer: B
     console.log('[Email] SMTP not configured — skipping (set SMTP_USER + SMTP_PASS in .env)');
     return;
   }
-  if (!order.email) {
+  const to = sanitizeEmail(order.email);
+  if (!to) {
     console.log('[Email] No customer email — skipping confirmation');
     return;
   }
@@ -100,9 +108,10 @@ export const sendOrderConfirmationEmail = async (order: EmailOrder, pdfBuffer: B
   const currency = order.currency || 'PKR';
   const refId    = order.id.substring(0, 8).toUpperCase();
   const subject  = `JT Collections — Order Confirmed #${refId}`;
-  const from     = process.env.SMTP_FROM
-    ? `"JT Collections" <${process.env.SMTP_FROM}>`
-    : `"JT Collections" <${process.env.SMTP_USER}>`;
+  const fromAddress = sanitizeEmail(getEnv('SMTP_FROM') || getEnv('SMTP_USER'));
+  const from = fromAddress
+    ? `"JT Collections" <${fromAddress}>`
+    : '"JT Collections" <no-reply@jtcollections.invalid>';
 
   const html = `
 <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0">
@@ -160,7 +169,7 @@ export const sendOrderConfirmationEmail = async (order: EmailOrder, pdfBuffer: B
   try {
     await sendMail({
       from,
-      to:      order.email,
+      to,
       subject,
       html,
       attachments: [{
@@ -169,11 +178,11 @@ export const sendOrderConfirmationEmail = async (order: EmailOrder, pdfBuffer: B
         contentType: 'application/pdf',
       }],
     });
-    console.log(`[Email] ✅ Confirmation sent to ${order.email}`);
+    console.log(`[Email] Confirmation sent to ${to}`);
     await logEmail(order, 'order_confirmation', subject, 'sent', undefined, attempts);
   } catch (firstErr: any) {
     attempts = 2;
-    console.warn(`[Email] ⚠ Both attempts failed for ${order.email}:`, firstErr.message);
+    console.warn(`[Email] Confirmation failed for ${to}:`, firstErr.message);
     await logEmail(order, 'order_confirmation', subject, 'failed', firstErr.message, attempts);
   }
 };
@@ -190,7 +199,8 @@ const STATUS_MESSAGES: Record<string, { heading: string; body: string; color: st
 
 export const sendOrderStatusEmail = async (order: EmailOrder): Promise<void> => {
   if (!isSmtpConfigured()) return;
-  if (!order.email) return;
+  const to = sanitizeEmail(order.email);
+  if (!to) return;
 
   const statusInfo = STATUS_MESSAGES[order.status?.toLowerCase() ?? ''];
   if (!statusInfo) return; // no email for 'pending'
@@ -198,9 +208,10 @@ export const sendOrderStatusEmail = async (order: EmailOrder): Promise<void> => 
   const currency = order.currency || 'PKR';
   const refId    = order.id.substring(0, 8).toUpperCase();
   const subject  = `JT Collections — ${statusInfo.heading} #${refId}`;
-  const from     = process.env.SMTP_FROM
-    ? `"JT Collections" <${process.env.SMTP_FROM}>`
-    : `"JT Collections" <${process.env.SMTP_USER}>`;
+  const fromAddress = sanitizeEmail(getEnv('SMTP_FROM') || getEnv('SMTP_USER'));
+  const from = fromAddress
+    ? `"JT Collections" <${fromAddress}>`
+    : '"JT Collections" <no-reply@jtcollections.invalid>';
 
   const html = `
 <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0">
@@ -227,11 +238,11 @@ export const sendOrderStatusEmail = async (order: EmailOrder): Promise<void> => 
 </div>`;
 
   try {
-    await sendMail({ from, to: order.email, subject, html });
-    console.log(`[Email] ✅ Status update (${order.status}) sent to ${order.email}`);
+    await sendMail({ from, to, subject, html });
+    console.log(`[Email] Status update (${order.status}) sent to ${to}`);
     await logEmail(order, 'status_update', subject, 'sent');
   } catch (err: any) {
-    console.warn(`[Email] ⚠ Status email failed for ${order.email}:`, err.message);
+    console.warn(`[Email] Status email failed for ${to}:`, err.message);
     await logEmail(order, 'status_update', subject, 'failed', err.message);
   }
 };

@@ -1,8 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
+import { getRequiredEnv } from './env.js';
 
-const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY!;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseUrl = getRequiredEnv('SUPABASE_URL');
+const supabaseAnonKey = getRequiredEnv('SUPABASE_ANON_KEY');
+const supabaseServiceRoleKey = getRequiredEnv('SUPABASE_SERVICE_ROLE_KEY');
 
 // Regular Supabase client for user operations (RLS enforced)
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {

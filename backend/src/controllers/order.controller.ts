@@ -3,6 +3,12 @@ import { supabaseAdmin as supabase } from '../config/supabaseClient.js';
 import { generateInvoicePDF } from '../services/invoice.service.js';
 import { sendOrderConfirmationEmail } from '../services/email.service.js';
 
+function normalizeOrderEmail(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const normalized = value.trim().replace(/\s+/g, '');
+  return normalized || undefined;
+}
+
 export const createOrder = async (req: Request, res: Response) => {
   const {
     items = [],
@@ -34,7 +40,7 @@ export const createOrder = async (req: Request, res: Response) => {
       city,
       postal_code,
       customer_name,
-      email,
+      email: normalizeOrderEmail(email),
       phone,
       payment_method: normalizedPaymentMethod,
       status: normalizedStatus,
