@@ -10,8 +10,12 @@ import cartRoutes from './routes/cart.routes.js';
 import shippingRoutes from './routes/shipping.routes.js';
 import returnRoutes from './routes/return.routes.js';
 import exportRoutes from './routes/export.routes.js';
+import metaEventRoutes from './routes/metaEvent.routes.js';
 
 const app = express();
+
+// Respect reverse proxies so req.ip / x-forwarded-for reflect the real client IP.
+app.set('trust proxy', true);
 
 // Allow origins from env (comma-separated) or mirror request origin (works with credentials)
 const corsOrigins = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : true;
@@ -34,5 +38,6 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/shipping", shippingRoutes);
 app.use("/api/returns", returnRoutes);
 app.use("/api/admin/export", exportRoutes);
+app.use("/api/meta", metaEventRoutes);
 
 export default app;
