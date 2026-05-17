@@ -12,6 +12,7 @@ import returnRoutes from './routes/return.routes.js';
 import exportRoutes from './routes/export.routes.js';
 import metaEventRoutes from './routes/metaEvent.routes.js';
 import tiktokEventRoutes from './routes/tiktokEvent.routes.js';
+import bannerRoutes from './routes/banner.routes.js';
 
 const app = express();
 
@@ -41,5 +42,6 @@ app.use("/api/returns", returnRoutes);
 app.use("/api/admin/export", exportRoutes);
 app.use("/api/meta", metaEventRoutes);
 app.use("/api/tiktok", tiktokEventRoutes);
+app.use("/api/banners", bannerRoutes);
 
 export default app;
