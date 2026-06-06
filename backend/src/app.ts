@@ -19,9 +19,18 @@ const app = express();
 // Respect reverse proxies so req.ip / x-forwarded-for reflect the real client IP.
 app.set('trust proxy', true);
 
-// Allow origins from env (comma-separated) or mirror request origin (works with credentials)
-const corsOrigins = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : true;
-app.use(cors({ origin: corsOrigins, credentials: true }));
+// Allow only configured origins (comma-separated CORS_ORIGIN, or fallback FRONTEND_URL).
+const configuredOrigins = (process.env.CORS_ORIGIN || process.env.FRONTEND_URL || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin: configuredOrigins.length ? configuredOrigins : true,
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 // Health check endpoint
