@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../services/supabaseClient';
-import { setApiToken } from '../services/api';
+import { API, setApiToken } from '../services/api';
 
 type AuthProfile = {
   id: string;
@@ -39,16 +39,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Non-fatal — silently continue
     }
 
-    // ── 1. Backend GET /api/users/:id with real Supabase JWT ──────────────
+    // ── 1. Backend GET /users/:id with real Supabase JWT ──────────────
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token;
-      const res = await fetch(`/api/users/${userId}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (res.ok) {
-        const json = await res.json();
-        const u = json.user ?? {};
+      const res = await API.get(`/users/${userId}`);
+      if (res.data?.success || res.data?.user) {
+        const u = res.data.user ?? {};
         setProfile({
           id:       u.id      ?? userId,
           email:    u.email   ?? userEmail,   // fallback to Supabase session email
@@ -62,7 +57,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // backend unreachable — fall through to direct Supabase attempts
     }
 
-    // ── 2. Direct Supabase → users table (no RLS in original schema) ──────
+    // ── 2. Direct Supabase → profiles table (where admin roles are stored) ──
+    try {
+      const { data: fromProfiles, error: profErr } = await supabase
+        .from('profiles')
+        .select('id, role, name, username')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (!profErr && fromProfiles && fromProfiles.role) {
+        setProfile({
+          id:       fromProfiles.id,
+          email:    userEmail,
+          role:     fromProfiles.role,
+          name:     fromProfiles.name,
+          username: fromProfiles.username,
+        });
+        return;
+      }
+    } catch {
+      // Non-fatal — fall through to users table
+    }
+
+    // ── 3. Direct Supabase → users table ────────────────────────────────────
     try {
       const { data: fromUsers, error: usersErr } = await supabase
         .from('users')
@@ -73,17 +90,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!usersErr && fromUsers) {
         setProfile({
           id:    fromUsers.id,
-          email: fromUsers.email,
+          email: fromUsers.email || userEmail,
           role:  fromUsers.role,
           name:  fromUsers.name,
         });
         return;
       }
     } catch {
-      // RLS or schema error — fall through
+      // Non-fatal — fall through
     }
 
-    // ── 3. Use session metadata as last resort ────────────────────────────
+    // ── 4. Use auth metadata or fallback ─────────────────────────────────────
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const metaRole =
+        sessionData.session?.user?.app_metadata?.role ||
+        sessionData.session?.user?.user_metadata?.role;
+      if (metaRole) {
+        setProfile({ id: userId, email: userEmail, role: metaRole });
+        return;
+      }
+    } catch {
+      // Non-fatal
+    }
+
     if (userEmail) {
       setProfile({ id: userId, email: userEmail, role: 'user' });
     } else {

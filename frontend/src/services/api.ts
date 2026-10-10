@@ -1,7 +1,29 @@
 import axios from "axios";
 
+const getApiBase = (): string => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl) {
+    return envUrl.endsWith('/api') ? envUrl : `${envUrl.replace(/\/$/, '')}/api`;
+  }
+
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host.includes('jtcollections.com')) {
+      return 'https://api.jtcollections.com/api';
+    }
+    if (host.includes('jtcolections.com')) {
+      return 'https://api.jtcolections.com/api';
+    }
+  }
+
+  return '/api';
+};
+
+export const API_BASE = getApiBase();
+
 export const API = axios.create({
-  baseURL: "/api",
+  baseURL: API_BASE,
+  withCredentials: true,
 });
 
 /**

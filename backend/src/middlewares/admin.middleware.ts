@@ -31,41 +31,36 @@ export const isAdmin = async (
 
   const quickRole = extractRole(req.user);
 
-  // Fast path — role already available from header
-  if (quickRole === 'admin') {
+  // Fast path — role already available from token / header
+  if (quickRole === 'admin' || quickRole === 'super_admin') {
     return next();
   }
 
   // Slow path — full Supabase user object was sent; look up role in DB
-  if (quickRole === undefined && req.user.id) {
+  if (req.user.id) {
     try {
-      // Try users table first, then profiles
+      // Try profiles table first (where role is assigned in JT Collections)
+      const { data: fromProfiles } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', req.user.id)
+        .maybeSingle();
+
+      if (fromProfiles?.role === 'admin' || fromProfiles?.role === 'super_admin') {
+        req.user = { id: req.user.id, role: fromProfiles.role, email: req.user.email };
+        return next();
+      }
+
+      // Try users table as fallback
       const { data: fromUsers } = await supabase
         .from('users')
         .select('role')
         .eq('id', req.user.id)
         .maybeSingle();
 
-      const dbRole = fromUsers?.role;
-
-      if (dbRole === 'admin') {
-        // Normalise so downstream handlers can trust req.user.role
-        req.user = { id: req.user.id, role: 'admin', email: req.user.email };
+      if (fromUsers?.role === 'admin' || fromUsers?.role === 'super_admin') {
+        req.user = { id: req.user.id, role: fromUsers.role, email: req.user.email };
         return next();
-      }
-
-      // Try profiles table
-      if (!dbRole) {
-        const { data: fromProfiles } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', req.user.id)
-          .maybeSingle();
-
-        if (fromProfiles?.role === 'admin') {
-          req.user = { id: req.user.id, role: 'admin', email: req.user.email };
-          return next();
-        }
       }
     } catch {
       // DB unreachable — fall through to 403

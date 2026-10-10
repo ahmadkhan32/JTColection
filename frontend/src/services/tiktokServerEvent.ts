@@ -7,11 +7,12 @@
 // Errors are silently swallowed — tracking must never break the UX.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const API_BASE      = import.meta.env.VITE_API_URL        ?? 'http://localhost:3001';
+import { API_BASE } from './api';
+
 const SUPABASE_URL  = import.meta.env.VITE_SUPABASE_URL   ?? '';
 const SUPABASE_ANON = import.meta.env.VITE_SUPABASE_ANON_KEY ?? '';
 
-const EXPRESS_ENDPOINT = `${API_BASE}/api/tiktok/events`;
+const EXPRESS_ENDPOINT = `${API_BASE}/tiktok/events`;
 const EDGE_ENDPOINT    = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1/tiktok-events` : '';
 
 export interface TikTokServerPayload {

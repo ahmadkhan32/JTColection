@@ -4,8 +4,8 @@
 // be stored in Supabase and forwarded to the Meta Graph API for deduplication.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
-const ENDPOINT = `${API_BASE}/api/meta/events`;
+import { API_BASE } from './api';
+const ENDPOINT = `${API_BASE}/meta/events`;
 
 export interface MetaEventPayload {
   event_name: string;

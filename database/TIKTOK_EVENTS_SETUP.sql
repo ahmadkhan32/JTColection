@@ -29,12 +29,13 @@ alter table tiktok_events add column if not exists external_id   text;
 -- 3. Enable Row Level Security
 alter table tiktok_events enable row level security;
 
--- 4. Allow anonymous inserts (browser pixel fires before auth)
+-- 4. Allow public & authenticated inserts (browser pixel fires both before and after auth)
 drop policy if exists "Allow anon insert" on tiktok_events;
-create policy "Allow anon insert"
+drop policy if exists "Allow public insert" on tiktok_events;
+create policy "Allow public insert"
   on tiktok_events
   for insert
-  to anon
+  to anon, authenticated
   with check (true);
 
 -- 5. Restrict reads to authenticated users only (admins can query in dashboard)

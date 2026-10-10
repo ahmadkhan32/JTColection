@@ -59,9 +59,14 @@ CREATE TABLE IF NOT EXISTS banner_analytics (
   banner_id   UUID REFERENCES banners(id) ON DELETE CASCADE,
   button_id   UUID REFERENCES banner_buttons(id) ON DELETE SET NULL,
   event_type  TEXT CHECK (event_type IN ('impression','click')),
+  device      TEXT,
+  country     TEXT,
   user_agent  TEXT,
   created_at  TIMESTAMP DEFAULT NOW()
 );
+
+ALTER TABLE banner_analytics ADD COLUMN IF NOT EXISTS device TEXT;
+ALTER TABLE banner_analytics ADD COLUMN IF NOT EXISTS country TEXT;
 
 -- ── Indexes ───────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_banners_active      ON banners(is_active, sort_order);

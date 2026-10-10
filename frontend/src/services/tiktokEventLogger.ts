@@ -5,6 +5,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { supabase } from './supabaseClient';
 import { trackTikTokEvent, trackTikTokSearch, sha256 } from '../utils/tiktokPixel';
+import { sendTikTokServerEvent } from './tiktokServerEvent';
 import type { TikTokEventName } from '../utils/tiktokPixel';
 
 export interface TikTokEventPayload {
@@ -88,25 +89,39 @@ export async function logTikTokEvent({
           type: contentType,
         }, extraPayload);
 
-  // 3. Persist to Supabase (non-blocking — failures are logged, not thrown)
-  const { error } = await supabase.from('tiktok_events').insert([
-    {
-      event_name: eventName,
-      event_id: eventId,
-      product_id: normalizedProductId,
-      product_name: normalizedProductName,
-      content_type: contentType,
-      amount: normalizedValue,
-      currency: normalizedCurrency,
-      search_string: searchString ?? null,
-      user_email: hashedEmail || null,
-      user_phone: hashedPhone || null,
-      external_id: hashedExternalId || null,
-    },
-  ]);
+  // 3. Persist to Supabase (best-effort; fallback to backend server CAPI if RLS blocks browser)
+  try {
+    const { error } = await supabase.from('tiktok_events').insert([
+      {
+        event_name: eventName,
+        event_id: eventId,
+        product_id: normalizedProductId,
+        product_name: normalizedProductName,
+        content_type: contentType,
+        amount: normalizedValue,
+        currency: normalizedCurrency,
+        search_string: searchString ?? null,
+        user_email: hashedEmail || null,
+        user_phone: hashedPhone || null,
+        external_id: hashedExternalId || null,
+      },
+    ]);
 
-  if (error) {
-    console.error('[TikTokEventLogger] Supabase insert failed:', error.message);
+    if (error) {
+      // If direct insert blocked by RLS policy, relay through server CAPI which uses service_role
+      sendTikTokServerEvent({
+        event_name: eventName,
+        event_id: eventId,
+        value: normalizedValue,
+        currency: normalizedCurrency,
+        search_string: searchString,
+        email,
+        phone,
+        external_id: externalId,
+      }).catch(() => null);
+    }
+  } catch {
+    // Non-blocking — tracking failure must never break UX
   }
 
   return eventId;

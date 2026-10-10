@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, User as UserIcon, ArrowRight } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
+import { API } from '../services/api';
 import { logTikTokEvent } from '../services/tiktokEventLogger';
 import { identifyTikTokUser } from '../utils/tiktokPixel';
 
@@ -44,12 +45,20 @@ export const Register: React.FC = () => {
         return;
       }
 
-      // 2. Save profile row in DB (only profiles table — users table has password_hash NOT NULL)
-      await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: userId, email, name, role: 'customer' }),
-      });
+      // 2. Save profile row in DB (profiles table is auto-provisioned)
+      try {
+        await API.post('/users', { id: userId, email, name, role: 'customer' });
+      } catch {
+        // Fallback: direct Supabase profile upsert
+        try {
+          await supabase.from('profiles').upsert(
+            { id: userId, name, role: 'customer' },
+            { onConflict: 'id' }
+          );
+        } catch {
+          // Non-blocking
+        }
+      }
 
       // If no session, Supabase requires email confirmation
       if (!data.session) {

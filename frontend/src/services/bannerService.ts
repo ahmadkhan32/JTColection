@@ -1,12 +1,6 @@
-﻿import { supabase } from './supabaseClient';
+import { supabase } from './supabaseClient';
+import { API_BASE } from './api';
 import type { Banner, BannerButton, BannerFormData, BannerAnalyticsSummary } from '../types/banner';
-
-// ── Determine API base URL ───────────────────────────────────────────────────
-// VITE_API_URL may be bare host (http://localhost:3001) or already include /api
-const _rawBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
-const API_BASE = _rawBase.endsWith('/api')
-  ? _rawBase
-  : `${_rawBase.replace(/\/$/, '')}/api`;
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
@@ -104,16 +98,31 @@ export async function trackBannerEvent(
   event_type: 'impression' | 'click',
   button_id?: string
 ): Promise<void> {
-  const device =
-    /Mobi|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop';
+  try {
+    const device =
+      /Mobi|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop';
 
-  await supabase.from('banner_analytics').insert({
-    banner_id,
-    event_type,
-    button_id:  button_id ?? null,
-    device,
-    user_agent: navigator.userAgent,
-  });
+    // Attempt insert with device column
+    const { error } = await supabase.from('banner_analytics').insert({
+      banner_id,
+      event_type,
+      button_id:  button_id ?? null,
+      device,
+      user_agent: navigator.userAgent,
+    });
+
+    // If schema cache lacks device column (400), retry without device
+    if (error && (error.code === 'PGRST204' || error.message?.includes('device') || error.code === '42703')) {
+      await supabase.from('banner_analytics').insert({
+        banner_id,
+        event_type,
+        button_id:  button_id ?? null,
+        user_agent: navigator.userAgent,
+      });
+    }
+  } catch {
+    // Non-blocking — analytics tracking must never break the UI
+  }
 }
 
 // ── Button helpers (direct Supabase for admin) ────────────────────────────────

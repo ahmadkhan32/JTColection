@@ -1,7 +1,8 @@
-﻿import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { supabase } from '../services/supabaseClient';
+import { setApiToken } from '../services/api';
 import { identifyTikTokUser } from '../utils/tiktokPixel';
 
 export const Login: React.FC = () => {
@@ -14,15 +15,24 @@ export const Login: React.FC = () => {
   // Set to true after a successful Supabase sign-in so the effect below can navigate
   const [awaitingProfile, setAwaitingProfile] = useState(false);
 
-  // Once Supabase sign-in succeeds, AuthContext loads the profile via onAuthStateChange.
-  // Watch for that to complete and navigate based on the real role from the database.
+  // If already logged in as admin, redirect directly to dashboard
+  useEffect(() => {
+    if (!auth?.isLoading && auth?.user && auth?.profile) {
+      if (auth.profile.role === 'admin' || auth.profile.role === 'super_admin') {
+        navigate('/admin/dashboard', { replace: true });
+      }
+    }
+  }, [auth?.isLoading, auth?.user, auth?.profile, navigate]);
+
+  // Watch for profile load to complete and navigate based on the role
   useEffect(() => {
     if (!awaitingProfile) return;
     if (auth?.isLoading) return; // still loading — wait
     if (!auth?.profile) return; // profile not set yet — wait
 
     setAwaitingProfile(false);
-    if (auth.profile.role === 'admin') {
+    const isAdmin = auth.profile.role === 'admin' || auth.profile.role === 'super_admin';
+    if (isAdmin) {
       navigate('/admin/dashboard', { replace: true });
     } else {
       navigate('/shop', { replace: true });
@@ -57,10 +67,42 @@ export const Login: React.FC = () => {
         throw new Error(authError?.message || 'Invalid credentials');
       }
 
-      // Supabase sign-in succeeded — AuthContext.onAuthStateChange will fire,
-      // load the profile, then the useEffect above will navigate to the right page.
+      // Immediately sync token and user
+      setApiToken(data.session?.access_token ?? null);
+      auth?.setUser(data.user);
+
+      // Attempt immediate profile resolution
+      let role = 'customer';
+      try {
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('id, role, name, username')
+          .eq('id', data.user.id)
+          .maybeSingle();
+
+        if (prof?.role) {
+          role = prof.role;
+          auth?.setProfile({
+            id: prof.id,
+            email: data.user.email ?? email,
+            role: prof.role,
+            name: prof.name,
+            username: prof.username,
+          });
+        }
+      } catch {
+        // Non-blocking
+      }
+
       // TikTok Pixel — identify user for advanced matching
       identifyTikTokUser(data.user.email ?? email, '', data.user.id);
+
+      // Navigate immediately if admin
+      if (role === 'admin' || role === 'super_admin') {
+        navigate('/admin/dashboard', { replace: true });
+        return;
+      }
+
       setAwaitingProfile(true);
     } catch (err: any) {
       const isOffline = err?.message?.includes('Failed to fetch') || !navigator.onLine;
