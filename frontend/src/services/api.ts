@@ -8,14 +8,13 @@ const getApiBase = (): string => {
 
   if (typeof window !== 'undefined') {
     const host = window.location.hostname;
-    if (host.includes('jtcollections.com')) {
-      return 'https://api.jtcollections.com/api';
-    }
-    if (host.includes('jtcolections.com')) {
-      return 'https://api.jtcolections.com/api';
+    // Production domains → Vercel backend
+    if (host.includes('jtcolections.com') || host.includes('jtcollections.com')) {
+      return 'https://jt-collection-backend-ahmadkhan32.vercel.app/api';
     }
   }
 
+  // Local dev: use Vite proxy (relative /api)
   return '/api';
 };
 
